@@ -15,8 +15,6 @@
     void setAcceleration_Scara(uint32_t acceleration);
     void setSpeed_Scara(uint32_t speed);
     void stop_Scara();
-    void stop_Scara_x_y();
-    void stop_Scara_z();
     void enable_Scara();
     void disable_Scara();
     void enableMotionPlaner_Scara_z();
@@ -30,7 +28,7 @@
     bool isMoving_Scara_x_y();
     bool isMoving_Scara_z();
     uint32_t getAcceleration_Scara();
-    //bool positionErreich_Scara();
+    bool positionErreich_Scara();
     void updatescara_curr();
 
     bool isCloseto_Scara(double a, double b, float delta);

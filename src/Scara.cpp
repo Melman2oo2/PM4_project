@@ -44,6 +44,8 @@
 Point scara_target(0,0,LENGTH, 0);
 Point scara_curr(0,0,0);
 
+bool doStop = false;
+
 //..........................................................................................
 // Servo
 //..........................................................................................
@@ -51,8 +53,6 @@ Point scara_curr(0,0,0);
 Servo servoFirst(PB_D0);
 Servo servoSecond(PB_D1);
 Servo servoGripper(PB_D2);
-
-bool doServoStop = false;
 
 
 //..........................................................................................
@@ -66,8 +66,6 @@ const float Motorkonstante = 28.0f / 12.0f;
 DigitalOut enable_motors(PB_ENABLE_DCMOTORS);
 // Objekt ertellen
 DCMotor z_motor(PB_PWM_M1, PB_ENC_A_M1, PB_ENC_B_M1, uebersetzungsverhaeltnis, Motorkonstante, maximaleSpannung);
-
-bool doDCStop = false;
 
 
 //##########################################################################################
@@ -103,11 +101,8 @@ void init_Scara(){
 //
 // Wiederhohlte Aufrufe (50Hz)
 void cycle_Scara(){
-    if (doServoStop){
-        stop_Scara_x_y();
-    }
-        if (doDCStop){
-        stop_Scara_z();
+    if (doStop){
+        stop_Scara();
     }
 
     updatescara_target();
@@ -192,43 +187,13 @@ void setSpeed_Scara(uint32_t speed){
 // Stoppt alle Motoren des Scaras
 void stop_Scara(){
 
-    stop_Scara_x_y();
-    stop_Scara_z();
+    doStop = true;
 
-    return;
-}
-
-//##########################################################################################
-// Stoppt den Scara in der X und Y Achse
-//##########################################################################################
-//
-// Stoppt alle SERVOS des Scaras
-void stop_Scara_x_y(){
-    doServoStop = true;
-    servoFirst.setPulseWidth(servoFirst.getCurrentPulseWidth());
-    servoSecond.setPulseWidth(servoSecond.getCurrentPulseWidth());
+    scara_target = scara_curr;
 
     if (!isMoving_Scara_x_y()){
-        doServoStop = false;
+        doStop = false;
     }
-    
-    return;
-}
-
-//##########################################################################################
-// Stoppt den Scara in der Z Achse
-//##########################################################################################
-//
-// Stoppt alle Motoren des Scaras
-void stop_Scara_z(){
-
-    doDCStop = true;
-    z_motor.setVelocity(0.0f);
-
-    if (!isMoving_Scara_z()){
-        doDCStop = false;
-    }
-    
 
     return;
 }
@@ -339,6 +304,7 @@ uint32_t actualSpeed_Scara(){
 //
 // return       bool        true = Scara bewegt sich
 bool isMoving_Scara(){
+    if(doStop) return true;
 
     if (isMoving_Scara_x_y()) return true;
 
@@ -398,6 +364,7 @@ uint32_t getAcceleration_Scara(){
 //
 // return       bool            true = position erreicht
 bool positionErreich_Scara(){
+    if(doStop) return true;
 
     Cartesian target = scara_target.getCartesian();
     Cartesian curr = scara_curr.getCartesian();
