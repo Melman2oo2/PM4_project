@@ -230,6 +230,15 @@ float DCMotor::getMotionPlanerAcceleration(void){
     return m_Motion.getProfileAcceleration(); 
 }
 
+// resetPosition implementiert durch Akermleo
+
+void DCMotor::resetPosition()
+{
+    m_rotation_initial = m_rotation;
+    m_rotation_target = 0.0f;
+    m_rotation_setpoint = 0.0f;
+}
+
 #if PERFORM_GPA_MEAS
 void DCMotor::startGPA()
 {

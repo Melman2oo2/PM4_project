@@ -219,15 +219,6 @@ public:
      */
     void setMaxAcceleration(float acceleration);
 
-    // getMotionPlanerAcceleration implementiert durch Akermleo
-
-    /**
-     * @brief Set the maximum set acceleration for the motor with motion planer.
-     *
-     * @param acceleration The maximum acceleration set in rotations per second squared.
-     */
-    float getMotionPlanerAcceleration(void);
-
     /**
      * @brief Get the maximum acceleration for the motor.
      *
@@ -265,6 +256,26 @@ public:
      * @param position The position in rotations.
      */
     void setMotionPlanerPosition(float position = 0.0f);
+    
+    // getMotionPlanerAcceleration implementiert durch Akermleo
+
+    /**
+     * @brief Get the maximum acceleration accoding to the Motion planer.
+     *
+     * @return float The maximum acceleration accoding to the Motion planer.
+     */
+    float getMotionPlanerAcceleration(void);
+
+    // resetPosition implementiert durch Akermleo
+
+    /**
+     * @brief Reset the current motor position to zero.
+     *
+     * Sets the current motor position as the new reference point.
+     * After calling this function, getRotation() will return 0.0f
+     * at the current motor position.
+     */
+    void resetPosition();
 
 #if PERFORM_GPA_MEAS
     void startGPA();
