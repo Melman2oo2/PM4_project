@@ -35,6 +35,10 @@
     #define PB_SD_SCK PC_10
     #define PB_SD_CS PD_2
 
+    // Temperature and Light Sensor
+    #define PB_SENS_TEMP PC_2
+    #define PB_SENS_LIGHT PC_3 
+
 #else
 
     #define PB_D0 PC_9  // ???

@@ -9,4 +9,8 @@
     void startScan();
     bool isScanFinished();
 
+    bool light_overdose();
+    bool temperature_overdose();
+
+
 #endif
