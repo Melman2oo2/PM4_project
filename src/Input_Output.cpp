@@ -1,6 +1,5 @@
 //Notes an self (Louis):
-// -  CycleInputOutput muss noch gemacht werden, aber sehe sinn dahinter nicht.
-// -  Bei StartScan muss no LED implementiert werden und allenfalls Simulierter  Timer mit Schalter ersetzt werden.   
+// -  LED leuchtet momentan während gesamter Scanzeit 
 
 
 
@@ -21,9 +20,14 @@
 // Globale Variable
 //##########################################################################################
 
-bool ACTIVE_SCAN;
 
-int SIMULATED_TIMER; 
+
+
+
+
+static bool ACTIVE_SCAN;
+#define SIMULATED_SCAN_TIMER_TIME 200 // 10 Sekunden, 50Hz
+
 
 #define LIGHT_MAX 100.0f // Max Licht in Lux
 #define LIGHT_MIN 0.0f  // Min Licht in Lux
@@ -57,6 +61,10 @@ AnalogIn TempSensor(PB_SENS_TEMP);
 
 
 // Output
+
+DigitalOut ScanLed(PB_4);
+
+
 //##########################################################################################
 // Startet den Scan
 //##########################################################################################
@@ -64,7 +72,8 @@ AnalogIn TempSensor(PB_SENS_TEMP);
 // Gibt optisches Signal aus, wenn der Scan starten soll
 void startScan(){
     ACTIVE_SCAN = 1;
-    SIMULATED_TIMER = 500; //10sekunden Timer
+    ScanLed = 1; 
+    
     return;
 }
 
@@ -76,20 +85,11 @@ void startScan(){
 // return       bool                true = scan ist fertig
 bool isScanFinished(){
     static bool ever_has_been = 0;
-    
-    //Simulierten Timer runterlaufen lassen
-    if(ACTIVE_SCAN){
-        SIMULATED_TIMER -= 1;
-    }else if (SIMULATED_TIMER = 0)
-    {
-       ACTIVE_SCAN = 0;
-    }
-    
-    
+        
 
     // Es gab nie einen Scan
     if(ever_has_been == 0 && ACTIVE_SCAN == 0){
-        printf("Von Anfang an kein Scan");
+        printf("kein Scan erkannt");
         return 1;
     } 
     
@@ -109,7 +109,7 @@ bool isScanFinished(){
 
     // Scan beendet
     if(ever_has_been == 1 && ACTIVE_SCAN == 0){
-        
+        ever_has_been = 0;
         printf("Scan beendet");
         return 1;
     }
@@ -124,6 +124,18 @@ bool isScanFinished(){
 // Wiederholte Aufgufe (50Hz)
 void cycle_InputOuput(){
 
+
+     //Simulierten Timer für Scan
+     static int SCAN_TIMER = 0;     
+     if(ACTIVE_SCAN){
+        SCAN_TIMER ++;      
+    }else if (SCAN_TIMER == SIMULATED_SCAN_TIMER_TIME)
+    {
+        ACTIVE_SCAN = 0;
+        ScanLed = 0;
+        SCAN_TIMER = 0;
+    }
+    
     return;
 }
 
