@@ -1,36 +1,85 @@
 // Scara.h
-
 #ifndef SCARA_H
 #define SCARA_H
 
-    #include <cmath> 
+#include "mbed.h"
+#include "PESBoardPinMap.h"
+#include "FastPWM.h"
+#include "DCMotor.h"
+#include "Servo.h"
+#include "Point.h"
 
-    void init_Scara();
-    void cycle_Scara();
+class Scara {
+public:
+    Point target;
+    Point current;
 
-    // Befehle
-    bool updatescara_target();
-    void grabVial_Scara(uint32_t height);
-    void placeVial_Scara(uint32_t height);
-    void setAcceleration_Scara(uint32_t acceleration);
-    void setSpeed_Scara(uint32_t speed);
-    void stop_Scara();
-    void enable_Scara();
-    void disable_Scara();
-    void enableMotionPlaner_Scara_z();
-    void disableMotionPlaner_Scara_z();
+    bool doStop;
 
-    //Rueckmeldungen
-    bool isEnabled_Scara();
-    bool isdiabled_Scara();
-    //uint32_t actualSpeed_Scara_x_y();
-    bool isMoving_Scara();
-    bool isMoving_Scara_x_y();
-    bool isMoving_Scara_z();
-    uint32_t getAcceleration_Scara();
-    bool positionErreich_Scara();
-    void updatescara_curr();
 
-    bool isCloseto_Scara(double a, double b, float delta);
+private:
+    static constexpr float SCARA_FIRST_MAX = 1.0f;
+    static constexpr float SCARA_FIRST_MIN = 0.0f;
+
+    static constexpr float SCARA_SECOND_MAX = 0.0f;
+    static constexpr float SCARA_SECOND_MIN = 1.0f;
+
+    static constexpr float SCARA_GRIPPER_MAX = 0.0f;
+    static constexpr float SCARA_GRIPPER_MIN = 1.0f;
+
+    static constexpr float DELTA = 0.001f;
+    static constexpr float LENGTH = 20.0f;
+    static constexpr float GEWINDESTEIGUNG = -8.0f;
+
+    DCMotor firstMotor;
+    Servo servoSecond;
+    Servo servoGripper;
+
+    DigitalOut enableMotors;
+    DCMotor zMotor;
+
+    const float maximaleSpannung = 12.0f;
+    const float uebersetzungsverhaeltnisZ = 31.0f;
+    const float uebersetzungsverhaeltnisFirst = 488.0f;
+    const float motorkonstante = 28.0f / 12.0f;
+
+public:
+    Scara();
+
+
+    void init();
+    void cycle();
+
+    void grabVial(uint32_t height);
+    void placeVial(uint32_t height);
+
+    void setAcceleration(uint32_t acceleration);
+    void setSpeed(uint32_t speed);
+
+    void stop();
+    void enable();
+    void disable();
+
+    void enableMotionPlanner();
+    void disableMotionPlanner();
+
+    bool isEnabled();
+    bool isDisabled();
+
+    uint32_t actualSpeed();
+
+    bool isMoving();
+    bool isMovingXY();
+    bool isMovingZ();
+
+    uint32_t getAcceleration();
+    bool positionReached();
+
+private:
+    bool updateTarget();
+    void updateCurrent();
+    
+    bool isCloseTo(double a, double b, float delta);
+};
 
 #endif

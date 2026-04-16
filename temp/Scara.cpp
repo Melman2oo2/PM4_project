@@ -1,27 +1,75 @@
+// Scara.cpp
 
+#include "mbed.h"
+
+// pes board pin map
+#include "PESBoardPinMap.h"
+
+// Treiber
+#include "FastPWM.h"
+#include "DCMotor.h"
+#include "Servo.h"
 #include "Scara.h"
+#include "DebounceIn.h"
+#include "Point.h"
 
-Scara::Scara()
-    : target(0, 0, LENGTH, 0),
-      current(0, 0, 0),
-      doStop(false),
-      firstMotor(
-          PB_PWM_M2,
-          PB_ENC_A_M2,
-          PB_ENC_B_M2,
-          uebersetzungsverhaeltnisFirst,
-          motorkonstante,
-          maximaleSpannung),
-      servoSecond(PB_D1),
-      servoGripper(PB_D2),
-      enableMotors(PB_ENABLE_DCMOTORS),
-      zMotor(
-          PB_PWM_M1,
-          PB_ENC_A_M1,
-          PB_ENC_B_M1,
-          uebersetzungsverhaeltnisZ,
-          motorkonstante,
-          maximaleSpannung) {}
+
+//##########################################################################################
+// Globale Variable
+//##########################################################################################
+#define SCARA_FIRST_MAX 1.0f
+#define SCARA_FIRST_MIN 0.0f
+
+#define SCARA_SECOND_MAX 0.0f
+#define SCARA_SECOND_MIN 1.0f
+
+#define SCARA_GRIPPER_MAX 0.0f
+#define SCARA_GRIPPER_MIN 1.0f
+
+#define DELTA 0.001f
+
+#define LENGTH 20.0f
+
+#define GEWINDESTEIGUNG -8.0f
+
+
+//##########################################################################################
+// Globale Objekte
+//##########################################################################################
+//
+//..........................................................................................
+// Punkte
+//..........................................................................................
+
+Point scara_target(0,0,LENGTH, 0);
+Point scara_curr(0,0,0);
+
+bool doStop = false;
+
+//..........................................................................................
+// Servo
+//..........................................................................................
+// servo-objekt erstellen
+Servo servoFirst(PB_D0);
+Servo servoSecond(PB_D1);
+Servo servoGripper(PB_D2);
+
+void setScara_scara(Point p){
+    scara_target = p;
+}
+
+
+//..........................................................................................
+// Motoren
+//..........................................................................................
+// Initialisierung diverser Parameter
+const float maximaleSpannung = 12.0f;
+const float uebersetzungsverhaeltnis = 31.0f;
+const float Motorkonstante = 28.0f / 12.0f;
+// Enable Power
+DigitalOut enable_motors(PB_ENABLE_DCMOTORS);
+// Objekt ertellen
+DCMotor z_motor(PB_PWM_M1, PB_ENC_A_M1, PB_ENC_B_M1, uebersetzungsverhaeltnis, Motorkonstante, maximaleSpannung);
 
 
 //##########################################################################################
@@ -29,7 +77,12 @@ Scara::Scara()
 //##########################################################################################
 //
 // Einmaliges Aufrufen am Anfang
-void Scara::init() {
+void init_Scara(){
+    
+    // min und max PWM first
+    float minPWMfirst = 0.011f;
+    float maxPWMfirst = 0.110f;
+
     // min und max PWM second
     float minPWMsecond = 0.011f;
     float maxPWMsecond = 0.115f;
@@ -38,12 +91,15 @@ void Scara::init() {
     float minPWMgripper = 0.011f;
     float maxPWMgripper = 0.115f;
 
-    // PWM Werte setzen
+    // PWM-Werte übergeben
+    servoFirst.calibratePulseMinMax(minPWMfirst, maxPWMfirst);
     servoSecond.calibratePulseMinMax(minPWMsecond, maxPWMsecond);
     servoGripper.calibratePulseMinMax(minPWMgripper, maxPWMgripper);
 
-    enableMotionPlanner();
-    setAcceleration(zMotor.getMaxAcceleration() * 0.5f);
+    enableMotionPlaner_Scara_z();
+    setAcceleration_Scara(z_motor.getMaxAcceleration()*0.5f);
+
+    return;
 }
 
 //##########################################################################################
@@ -51,13 +107,15 @@ void Scara::init() {
 //##########################################################################################
 //
 // Wiederhohlte Aufrufe (50Hz)
-void Scara::cycle() {
-    if (doStop) {
-        stop();
+void cycle_Scara(){
+    if (doStop){
+        stop_Scara();
     }
 
-    updateTarget();
-    updateCurrent();
+    updatescara_target();
+    updatescara_curr();
+
+    return;
 }
 
 // Befehle
@@ -66,17 +124,13 @@ void Scara::cycle() {
 //##########################################################################################
 //
 // Scara Ziel: Kartesische Position
-bool Scara::updateTarget() {
-    Pscara pscara = target.getScara(LENGTH);
+bool updatescara_target(){
+    Pscara pscara = scara_target.getScara(LENGTH);
+    if (pscara.impossible) return false;
+    servoFirst.setPulseWidth(pscara.theta_1);
+    servoSecond.setPulseWidth(pscara.theta_2);
 
-    if (pscara.impossible) {
-        return false;
-    }
-
-    firstMotor.setRotation(pscara.theta_1/2.0f*M_PI);
-    servoSecond.setPulseWidth(pscara.theta_2/M_PI);
-
-    zMotor.setRotation(pscara.z / GEWINDESTEIGUNG);
+    z_motor.setRotation(pscara.z / GEWINDESTEIGUNG);
 
     return true;
 }
@@ -86,7 +140,9 @@ bool Scara::updateTarget() {
 //##########################################################################################
 //
 // greifft die Vial basierend auf der höhe des Vials
-void Scara::grabVial(uint32_t height) {
+void grabVial_Scara(uint32_t height){
+
+    return;
 }
 
 //##########################################################################################
@@ -94,7 +150,9 @@ void Scara::grabVial(uint32_t height) {
 //##########################################################################################
 //
 // platziert das Vial basierend auf der Zielhöhe des Vials
-void Scara::placeVial(uint32_t height) {
+void placeVial_Scara(uint32_t height){
+
+    return;
 }
 
 //##########################################################################################
@@ -102,12 +160,15 @@ void Scara::placeVial(uint32_t height) {
 //##########################################################################################
 //
 // setzt die max. Servo und DC Beschleunigung
-void Scara::setAcceleration(uint32_t acceleration) {
-    firstMotor.setMaxAcceleration(acceleration / 2);
+void setAcceleration_Scara(uint32_t acceleration){
+    
+    servoFirst.setMaxAcceleration(acceleration/2);
     servoSecond.setMaxAcceleration(acceleration);
     servoGripper.setMaxAcceleration(acceleration);
 
-    zMotor.setMaxAcceleration(acceleration * 2);
+    z_motor.setMaxAcceleration(acceleration*2);
+
+    return;
 }
 
 //##########################################################################################
@@ -115,12 +176,15 @@ void Scara::setAcceleration(uint32_t acceleration) {
 //##########################################################################################
 //
 // setzt die max. Servo und DC Geschwindigkeit
-void Scara::setSpeed(uint32_t speed) {
-    firstMotor.setMaxVelocity(speed / 2);
+void setSpeed_Scara(uint32_t speed){
+
+    servoFirst.setMaxVelocity(speed/2);
     servoSecond.setMaxVelocity(speed);
     servoGripper.setMaxVelocity(speed);
 
-    zMotor.setMaxVelocity(speed * 2);
+    z_motor.setMaxVelocity(speed*2);
+
+    return;
 }
 
 //##########################################################################################
@@ -128,14 +192,17 @@ void Scara::setSpeed(uint32_t speed) {
 //##########################################################################################
 //
 // Stoppt alle Motoren des Scaras
-void Scara::stop() {
+void stop_Scara(){
+
     doStop = true;
 
-    target = current;
+    scara_target = scara_curr;
 
-    if (!isMovingXY()) {
+    if (!isMoving_Scara_x_y()){
         doStop = false;
     }
+
+    return;
 }
 
 //##########################################################################################
@@ -143,16 +210,17 @@ void Scara::stop() {
 //##########################################################################################
 //
 // enabled die Motoren des Scaras
-void Scara::enable() {
-    enableMotors = 1;
+void enable_Scara(){
+    // DC
+    enable_motors = 1;
 
-    if (!servoSecond.isEnabled()) {
+    // Servo
+    if (!servoFirst.isEnabled())
+        servoFirst.enable();
+    if (!servoSecond.isEnabled())
         servoSecond.enable();
-    }
 
-    if (!servoGripper.isEnabled()) {
-        servoGripper.enable();
-    }
+    return;
 }
 
 //##########################################################################################
@@ -160,37 +228,37 @@ void Scara::enable() {
 //##########################################################################################
 //
 // disabled die Motoren des Scaras
-void Scara::disable() {
-    enableMotors = 0;
+void disable_Scara(){
+    // DC
+    enable_motors = 0;
 
-    if (servoSecond.isEnabled()) {
+    // Servo
+    if (servoFirst.isEnabled())
+        servoFirst.disable();
+    if (servoSecond.isEnabled())
         servoSecond.disable();
-    }
 
-    if (servoGripper.isEnabled()) {
-        servoGripper.disable();
-    }
+    return;
 }
 
 //##########################################################################################
 // enabled den Motion Planer
 //##########################################################################################
 //
-// enabled den Motion Planer
-void Scara::enableMotionPlanner() {
-    firstMotor.enableMotionPlanner();
-    zMotor.enableMotionPlanner();
-
+// enabled den Motion Planer der z-Achse
+void enableMotionPlaner_Scara_z(){
+    z_motor.enableMotionPlanner();
+    return;
 }
 
 //##########################################################################################
 // disabled den Motion Planer
 //##########################################################################################
 //
-// disabled den Motion Planer
-void Scara::disableMotionPlanner() {
-    firstMotor.disableMotionPlanner();
-    zMotor.disableMotionPlanner();
+// disabled den Motion Planer der z-Achse
+void disableMotionPlaner_Scara_z(){
+    z_motor.disableMotionPlanner();
+    return;
 }
 
 // Rückmeldungen
@@ -200,10 +268,13 @@ void Scara::disableMotionPlanner() {
 //##########################################################################################
 //
 // return       bool        true = alle Motoren Enabled
-bool Scara::isEnabled() {
-    if (!servoSecond.isEnabled()) return false;
-    if (!servoGripper.isEnabled()) return false;
-    if (!enableMotors.read()) return false;
+bool isEnabled_Scara(){
+
+    if(!servoFirst.isEnabled()) return false;
+    if(!servoSecond.isEnabled()) return false;
+    if(!servoGripper.isEnabled()) return false;
+
+    if(!enable_motors.read()) return false;
 
     return true;
 }
@@ -213,10 +284,13 @@ bool Scara::isEnabled() {
 //##########################################################################################
 //
 // return       bool        true = alle Motoren disabled
-bool Scara::isDisabled() {
-    if (servoSecond.isEnabled()) return false;
-    if (servoGripper.isEnabled()) return false;
-    if (enableMotors.read()) return false;
+bool isdiabled_Scara(){
+
+    if(servoFirst.isEnabled()) return false;
+    if(servoSecond.isEnabled()) return false;
+    if(servoGripper.isEnabled()) return false;
+
+    if(enable_motors.read()) return false;
 
     return true;
 }
@@ -226,12 +300,9 @@ bool Scara::isDisabled() {
 //##########################################################################################
 //
 // return       uint32_t    akt. Geschwindigkeit
-uint32_t Scara::actualSpeed() {
-    float first = fabs(firstMotor.getVelocity());
-    float second = fabs(servoSecond.getCurrentVelocity());
-    float z = fabs(zMotor.getVelocity());
+uint32_t actualSpeed_Scara(){
 
-    return static_cast<uint32_t>(fmax(first, fmax(second, z)));
+    return 0;
 }
 
 //##########################################################################################
@@ -239,10 +310,12 @@ uint32_t Scara::actualSpeed() {
 //##########################################################################################
 //
 // return       bool        true = Scara bewegt sich
-bool Scara::isMoving() {
-    if (doStop) return true;
-    if (isMovingXY()) return true;
-    if (isMovingZ()) return true;
+bool isMoving_Scara(){
+    if(doStop) return true;
+
+    if (isMoving_Scara_x_y()) return true;
+
+    if (isMoving_Scara_z()) return true;
 
     return false;
 }
@@ -252,16 +325,16 @@ bool Scara::isMoving() {
 //##########################################################################################
 //
 // return       bool        true = Scara bewegt sich in X oder Y Ebene
-bool Scara::isMovingXY() {
-    if (!isCloseTo(firstMotor.getVelocity(), 0.0f, DELTA)) {
+bool isMoving_Scara_x_y(){
+
+    if (!isCloseto_Scara(servoFirst.getCurrentVelocity(), 0.0f, DELTA) ){
+        return true;
+    }
+    if (!isCloseto_Scara(servoSecond.getCurrentVelocity(), 0.0f, DELTA) ){
         return true;
     }
 
-    if (!isCloseTo(servoSecond.getCurrentVelocity(), 0.0f, DELTA)) {
-        return true;
-    }
-
-    return false;
+    return false;;
 }
 
 //##########################################################################################
@@ -269,8 +342,9 @@ bool Scara::isMovingXY() {
 //##########################################################################################
 //
 // return       bool        true = Scara bewegt sich in Z Ebene
-bool Scara::isMovingZ() {
-    if (!isCloseTo(zMotor.getVelocity(), 0.0f, DELTA)) {
+bool isMoving_Scara_z(){
+
+    if (!isCloseto_Scara(z_motor.getVelocity(), 0.0f, DELTA) ){
         return true;
     }
 
@@ -282,14 +356,13 @@ bool Scara::isMovingZ() {
 //##########################################################################################
 //
 // return       uint32_t    max. Beschleunigung
-uint32_t Scara::getAcceleration() {
-    if (isCloseTo(firstMotor.getMaxAcceleration() * 2,
-                  servoSecond.getMaxAcceleration(),
-                  DELTA)) {
+uint32_t getAcceleration_Scara(){
+
+    if(isCloseto_Scara(servoFirst.getMaxAcceleration()*2, servoSecond.getMaxAcceleration(), DELTA)){
         return servoSecond.getMaxAcceleration();
     }
 
-    return static_cast<uint32_t>(-1);
+    return -1;
 }
 
 //##########################################################################################
@@ -297,29 +370,29 @@ uint32_t Scara::getAcceleration() {
 //##########################################################################################
 //
 // return       bool            true = position erreicht
-bool Scara::positionReached() {
-    if (doStop) return true;
+bool positionErreich_Scara(){
+    if(doStop) return true;
 
-    Cartesian targetCartesian = target.getCartesian();
-    Cartesian currentCartesian = current.getCartesian();
+    Cartesian target = scara_target.getCartesian();
+    Cartesian curr = scara_curr.getCartesian();
 
-    if (!isCloseTo(targetCartesian.x, currentCartesian.x, DELTA)) return false;
-    if (!isCloseTo(targetCartesian.y, currentCartesian.y, DELTA)) return false;
-    if (!isCloseTo(targetCartesian.z, currentCartesian.z, DELTA)) return false;
+    if(!isCloseto_Scara(target.x, curr.x, DELTA)) return false;
+    if(!isCloseto_Scara(target.y, curr.y, DELTA)) return false;
+    if(!isCloseto_Scara(target.z, curr.z, DELTA)) return false;
 
     return true;
 }
+
 //##########################################################################################
-// Setzt die Aktuelle Position korrekt
+// Erhalte die Aktuelle Position einer achse
 //##########################################################################################
 //
-// return       void        aktuelle Position update
-void Scara::updateCurrent() {
-    current.setScara(
-        firstMotor.getRotation()*2.0f*M_PI,
-        servoSecond.getCurrentPulseWidth()*M_PI,
-        LENGTH,
-        zMotor.getRotation() * GEWINDESTEIGUNG);
+// return       Point        aktuelle Position
+void updatescara_curr(){
+
+    scara_curr.setScara(servoFirst.getCurrentPulseWidth(), servoSecond.getCurrentPulseWidth(), LENGTH, z_motor.getRotation()*GEWINDESTEIGUNG);
+    
+    return;
 }
 
 
@@ -329,8 +402,9 @@ void Scara::updateCurrent() {
 //##########################################################################################
 //
 // return       bool        true = nache beieinander
-bool Scara::isCloseTo(double a, double b, float delta) {
-    delta = fabs(delta);
-
-    return (a >= (b - delta) && a <= (b + delta));
+bool isCloseto_Scara(double a, double b, float delta){
+    delta = abs(delta);
+    if( (a >= (b-delta) )  &&   (a <= (b+delta) ) ){
+        return true;
+    }else return false;
 }
