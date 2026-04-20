@@ -28,6 +28,10 @@
 // PM2 Globale Deklarationen
 //#####################################################################################
 
+
+Scara scara;
+
+
 // Ablaufschritte
 typedef enum {
     Initialieren,
@@ -50,8 +54,7 @@ t_RoboterStatus status;
 void pm4init(void) {
 
     // init der Module
-    init_Scara();
-
+    scara.init();
     return;
 }
 
@@ -61,13 +64,12 @@ void pm4init(void) {
 //#####################################################################################
 void pm4main(void) {
 
-    // cycle Funktionen aufrufen
-
-    cycle_Scara();
-    Point p(0.0f, 0.0f, -8.0f);
-    // p.setCartesian(0.0f, 0.0f, 8.0f);
-    setScara_scara(p);
-
+    scara.cycle();
+    Point temp = scara.current;
+    temp.setCylindrical(temp.getCylindrical().r, 0.5, 0.0f);
+    scara.target.setCartesian(temp.getCartesian().x, temp.getCartesian().y, temp.getCartesian().z);
+    
+    printf("position: ");
 
     return;
 }
@@ -79,5 +81,6 @@ void pm4main(void) {
 void pm4reset(void) {
 
     if (PRINTFACTIVE) printf("* * * RESET * * *");
+    scara.stop();
     return;
 }

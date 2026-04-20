@@ -6,9 +6,9 @@ Scara::Scara()
       current(0, 0, 0),
       doStop(false),
       firstMotor(
-          PB_PWM_M2,
-          PB_ENC_A_M2,
-          PB_ENC_B_M2,
+          PB_PWM_M1,
+          PB_ENC_A_M1,
+          PB_ENC_B_M1,
           uebersetzungsverhaeltnisFirst,
           motorkonstante,
           maximaleSpannung),
@@ -16,9 +16,9 @@ Scara::Scara()
       servoGripper(PB_D2),
       enableMotors(PB_ENABLE_DCMOTORS),
       zMotor(
-          PB_PWM_M1,
-          PB_ENC_A_M1,
-          PB_ENC_B_M1,
+          PB_PWM_M2,
+          PB_ENC_A_M2,
+          PB_ENC_B_M2,
           uebersetzungsverhaeltnisZ,
           motorkonstante,
           maximaleSpannung) {}
@@ -41,6 +41,8 @@ void Scara::init() {
     // PWM Werte setzen
     servoSecond.calibratePulseMinMax(minPWMsecond, maxPWMsecond);
     servoGripper.calibratePulseMinMax(minPWMgripper, maxPWMgripper);
+
+    enable();
 
     enableMotionPlanner();
     setAcceleration(zMotor.getMaxAcceleration() * 0.5f);
