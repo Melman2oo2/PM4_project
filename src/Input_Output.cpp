@@ -54,9 +54,9 @@ static bool ACTIVE_SCAN;
 // Sensoren
 //..........................................................................................
 
-AnalogIn LightSensor(PB_SENS_LIGHT);
+AnalogIn LightSensor(PB_A1);
 
-AnalogIn TempSensor(PB_SENS_TEMP);
+AnalogIn TempSensor(PB_A0);
 
 
 

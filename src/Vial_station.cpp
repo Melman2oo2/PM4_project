@@ -41,9 +41,11 @@ DigitalIn Vial_4(PB_5);
 // return      uint16_t          Maske der Vials
 bool getMask_Vialstation(){
     if(Vial_0 + Vial_1 + Vial_2 + Vial_3 + Vial_4){
+        printf("Vial ist umen");
         return 1;
     }else{
-         return 0;
+        return 0;
+        printf("Vial nicht erkannt");
     }     
 
     return 0;
@@ -114,7 +116,7 @@ uint32_t nextVial_VialStation(){
 
     if(colum > 5){
         colum = 1;
-         
+        printf("next row");
     } 
 
     
