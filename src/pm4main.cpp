@@ -73,6 +73,7 @@ void pm4main(void) {
    
     cycle_InputOutput();
     
+    getMask_VialStation();
    
     
     //=================================================================================

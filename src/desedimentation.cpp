@@ -153,14 +153,9 @@ void start_timer(int time){
 // beendet deîe Desedimentation so, dass das Vial oben ist
 void stop_desedimentation(){
 
-    if(!isVialOben_desedimentation()){
+    Servo_input = 0.0f;
      
-     Servo_input = 0.0f;
-     
-     if(isVialOben_desedimentation()){
-         printf("Desedimentation finished!\n");
-     }
-   }
+   
 
 
    
