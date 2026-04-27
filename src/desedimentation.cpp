@@ -57,13 +57,21 @@ void init_desedimentation(){
    
     Servo_desedimentation.setMaxAcceleration(maxAcceleration);
     Servo_desedimentation.setMaxVelocity(maxVelocity);
-    Servo_desedimentation.calibratePulseMinMax(0.0350f, 0.125f);
+    Servo_desedimentation.calibratePulseMinMax(0.035f, 0.120f);
     
     Servo_desedimentation.enable();
     
-    
+    Servo_desedimentation.setPulseWidth(0.0f);
 
     return;
+}
+
+void reset_desedimentation(){
+    
+    
+    Servo_desedimentation.setPulseWidth(0.0f);
+     Servo_desedimentation.disable();
+
 }
 
 //##########################################################################################
@@ -81,18 +89,19 @@ Servo_desedimentation.setPulseWidth(Servo_input);
     
 
 if(!isTimerDone_desedimentation()){
-
+    
     desedimentation_timer --;
+    printf("%d", desedimentation_timer);
 
     if(forward){
-        Servo_desedimentation.setPulseWidth(0.0f);
-        if(Servo_desedimentation.getCurrentPulseWidth() == 0.0f){
+        Servo_input = 0.0f;
+        if(Servo_desedimentation.getCurrentPulseWidth() <= 0.01f){
             forward = false;
         }
     }
     if(!forward){
-        Servo_desedimentation.setPulseWidth(1.0f);
-        if(Servo_desedimentation.getCurrentPulseWidth() == 1.0f){
+        Servo_input = 1.0f;
+        if(Servo_desedimentation.getCurrentPulseWidth() >= 0.99f){
             forward = true;
         }
     }
@@ -145,8 +154,8 @@ void start_timer(int time){
 void stop_desedimentation(){
 
     if(!isVialOben_desedimentation()){
-     printf("gehe nach oben\n");
-     Servo_input = 0.5f;
+     
+     Servo_input = 0.0f;
      
      if(isVialOben_desedimentation()){
          printf("Desedimentation finished!\n");
@@ -213,8 +222,8 @@ bool isDisabled_desedimentation(){
 // return       bool            true = vial ist oben
 bool isVialOben_desedimentation(){
     float what = Servo_desedimentation.getCurrentPulseWidth();
-    if(0.51f >= what >= 0.49f){
-        printf("Vial oben\n");
+    if(what <= 0.01f){
+      
         return 1;
     }else{
         
@@ -235,7 +244,7 @@ bool isTimerDone_desedimentation(){
     
 
     if(desedimentation_timer == 0 ){
-        printf("Timer fertig\n");
+       
         return 1;
     }else{
         return 0;

@@ -29,11 +29,11 @@ static bool ACTIVE_SCAN;
 #define SIMULATED_SCAN_TIMER_TIME 200 // 10 Sekunden, 50Hz
 
 
-#define LIGHT_MAX 100.0f // Max Licht in Lux
-#define LIGHT_MIN 0.0f  // Min Licht in Lux
 
-#define LIGHT_SOLL 0.0f // Gewolltes Licht in Lux
-#define LIGHT_TOL 2.0f // Erlaubte Abweichung in Lux
+
+
+#define LIGHT_SOLL 0.5f // Gewolltes Licht in Lux
+#define LIGHT_TOL 0.1f // Erlaubte Abweichung in Lux
 
 #define TEMP_MAX 100.0f     // Max Temperatur in Grad Celsius        
 #define TEMP_MIN 0.0f    // Min Temperatur in Grad Celsius    
@@ -124,11 +124,23 @@ bool isScanFinished(){
 // Wiederholte Aufgufe (50Hz)
 void cycle_InputOuput(){
 
+    
+   
 
      //Simulierten Timer für Scan
      static int SCAN_TIMER = 0;     
      if(ACTIVE_SCAN){
-        SCAN_TIMER ++;      
+        SCAN_TIMER ++; 
+        
+
+        if(light_overdose()){
+            printf("error, zu hell");
+        }
+
+        if(temperature_overdose()){
+            printf("error, zu warm/kalt");
+        }
+        
     }else if (SCAN_TIMER == SIMULATED_SCAN_TIMER_TIME)
     {
         ACTIVE_SCAN = 0;
@@ -148,28 +160,33 @@ void cycle_InputOuput(){
 
 bool light_overdose(){
     float input_value = LightSensor.read(); //input Licht 0...1.0f 
-    float lux_value = input_value * (LIGHT_MAX - LIGHT_MIN) + LIGHT_MIN; //input Licht in Lux
-
+    
     static float lux_values[20]; 
     static int lux_i = 0;
+    static float lux_avg;
 
-    lux_values[lux_i] = lux_value; //Durchnitt Wert bestimmen
+    lux_values[lux_i] = input_value; //Durchnitt Wert bestimmen
     if(lux_i < 19){
         lux_i ++;
     }else{
         lux_i = 0;   
     }
 
-    float lux_avg = 0.0f;
+    
     for(int i = 0; i < 20; i++){
         lux_avg += lux_values[i];
     } 
+    lux_avg /= 20;
     
-    if((LIGHT_SOLL - LIGHT_TOL) < lux_avg < (LIGHT_SOLL + LIGHT_TOL)){
+    if(lux_avg < LIGHT_SOLL){
+
         return 0;
+        
     }else{
+
+        printf("Licht is nix gut\n");
         return 1;
-        printf("Licht is nix gut");
+        
     } 
 }
 
@@ -199,8 +216,10 @@ bool temperature_overdose(){
     for(int i = 0; i < 20; i++){
         cel_avg += cel_values[i];
     } 
-    
+    cel_avg /= 20;
+    printf("%f\n", input_value);
     if((TEMP_SOLL - TEMP_TOL) < cel_avg < (TEMP_SOLL + TEMP_TOL)){
+        
         return 0;
     }else{
         return 1;

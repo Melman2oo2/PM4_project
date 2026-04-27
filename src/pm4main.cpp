@@ -48,21 +48,32 @@ t_RoboterStatus status;
 // PM4 INIT-Funktion
 //#####################################################################################
 void pm4init(void) {
-
+    
     // init der Module
+   
+    
+    init_desedimentation();
 
-
+    
+    
     return;
 }
+
 
 
 //#####################################################################################
 // PM4 MAIN-Funktion
 //#####################################################################################
-void pm2main(void) {
-
+void pm4main(void) {
+    
     // cycle Funktionen aufrufen
+   
+    cycle_desedimentation();
 
+   
+    cycle_InputOutput();
+    
+   
     
     //=================================================================================
     // SCHRITTKETTE ROBOTERABLAUF
@@ -110,6 +121,8 @@ void pm2main(void) {
 // PM4 RESET-Funktion
 //#####################################################################################
 void pm4reset(void) {
+
+    reset_desedimentation();
 
     if (PRINTFACTIVE) printf("* * * RESET * * *");
     return;

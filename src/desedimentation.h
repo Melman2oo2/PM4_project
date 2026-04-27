@@ -10,6 +10,7 @@ extern Servo Servo_desedimentation;
 
 
     void init_desedimentation();
+    void reset_desedimentation();
     void cycle_desedimentation();
 
     // Befehle
