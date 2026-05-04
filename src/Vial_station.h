@@ -5,7 +5,9 @@
 
     // Rueckmeldungen
     bool getMask_VialStation();
+
     bool vialPresent_VialStation();
+    
     uint32_t nextVial_VialStation();
 
 #endif

@@ -54,7 +54,9 @@ void pm4init(void) {
     
     init_desedimentation();
 
-    
+    vialPresent_VialStation();
+
+    getMask_VialStation();
     
     return;
 }
@@ -68,12 +70,12 @@ void pm4main(void) {
     
     // cycle Funktionen aufrufen
    
-    cycle_desedimentation();
+    //cycle_desedimentation();
 
    
-    cycle_InputOutput();
+    //cycle_InputOutput();
     
-    getMask_VialStation();
+    
    
     
     //=================================================================================

@@ -113,6 +113,8 @@ bool isScanFinished(){
         printf("Scan beendet");
         return 1;
     }
+
+    return 0;
     
 }
 
@@ -218,7 +220,7 @@ bool temperature_overdose(){
     } 
     cel_avg /= 20;
     printf("%f\n", input_value);
-    if((TEMP_SOLL - TEMP_TOL) < cel_avg < (TEMP_SOLL + TEMP_TOL)){
+    if(((TEMP_SOLL - TEMP_TOL) < cel_avg ) && (cel_avg < (TEMP_SOLL + TEMP_TOL))){
         
         return 0;
     }else{
