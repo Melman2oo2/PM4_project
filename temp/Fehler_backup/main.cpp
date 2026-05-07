@@ -48,7 +48,6 @@ int main()
     main_task_timer.start();
 
     // PM4 init
-
     pm4init();
 
     // this loop will run forever

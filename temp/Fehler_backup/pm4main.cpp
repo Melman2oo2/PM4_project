@@ -18,6 +18,8 @@
 #include <cstdio>
 
 // standartwerte definieren für lesbarkeit
+#define GERADEAUS 0.0f
+#define NORMAL_GESCH 1.0f
 
 #define PRINTFACTIVE true
 
@@ -30,6 +32,21 @@ static Scara& getScara() {
     static Scara scara;
     return scara;
 }
+
+
+// Ablaufschritte
+typedef enum {
+    Initialieren,
+
+    Ende,
+    Fehler
+} t_RoboterStatus;
+
+
+// Schritt des Roboterablaufes 
+t_RoboterStatus status;
+
+// Flags
 
 
 
@@ -50,6 +67,8 @@ void pm4init(void) {
 void pm4main(void) {
 
     getScara().cycle();
+    // Point temp = scara.current;
+    // scara.target.setCartesian(20.0f, 0.0f, -50.0f);
     
     getScara().printstate();
 
@@ -65,7 +84,7 @@ void pm4reset(void) {
     if (PRINTFACTIVE) printf("* * * RESET * * *");
     getScara().stop();
 
-    getScara().disable();
+    // scara.disable();
 
     return;
 }

@@ -69,7 +69,7 @@ const float Motorkonstante = 28.0f / 12.0f;
 // Enable Power
 DigitalOut enable_motors(PB_ENABLE_DCMOTORS);
 // Objekt ertellen
-DCMotor z_motor(PB_PWM_M1, PB_ENC_A_M1, PB_ENC_B_M1, uebersetzungsverhaeltnis, Motorkonstante, maximaleSpannung);
+DCMotor z_motor(PB_PWM_M2, PB_ENC_A_M2, PB_ENC_B_M2, uebersetzungsverhaeltnis, Motorkonstante, maximaleSpannung);
 
 
 //##########################################################################################

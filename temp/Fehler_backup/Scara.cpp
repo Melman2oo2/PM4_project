@@ -6,9 +6,9 @@ Scara::Scara()
       current(0, 0, 0),
       doStop(false),
       firstMotor(
-          PB_PWM_M1,
-          PB_ENC_A_M1,
-          PB_ENC_B_M1,
+          PB_PWM_M3,
+          PB_ENC_A_M3,
+          PB_ENC_B_M3,
           uebersetzungsverhaeltnisFirst,
           motorkonstante,
           maximaleSpannung),
@@ -22,9 +22,8 @@ Scara::Scara()
           uebersetzungsverhaeltnisZ,
           motorkonstante,
           maximaleSpannung),
-      anschlagZ(PC_0),
-      anschlagFirst(PC_1)
-      {
+      anschlagZ(PA_8),
+      anschlagFirst(PA_9) {
         init();
       }
 
@@ -38,46 +37,67 @@ void Scara::init() {
 
     printf("beginn der Initialisierung\n");
 
-    anschlagZ.rise(callback(this, &Scara::Zanschlag_Handler_rise), 20ms);
-    anschlagZ.fall(callback(this, &Scara::Zanschlag_Handler_fall), 20ms);
+    // anschlagZ.mode(PullUp);
+    // anschlagFirst.mode(PullUp);
 
-    anschlagFirst.rise(callback(this, &Scara::Firstanschlag_Handler_rise), 20ms);
-    anschlagFirst.fall(callback(this, &Scara::Firstanschlag_Handler_fall), 20ms);
+    // status = Status::InitialisierenZ;
 
-    status = Status::InitialisierenZ;
+    // // min und max PWM second
+    // float minPWMsecond = 0.011f;
+    // float maxPWMsecond = 0.115f;
 
-    // min und max PWM second
-    float minPWMsecond = 0.011f;
-    float maxPWMsecond = 0.115f;
+    // float servo_D1_ang_min = 0.03f;
+    // float servo_D1_ang_max = 0.1115f;
 
-    float servo_D1_ang_min = 0.03f;
-    float servo_D1_ang_max = 0.1115f;
+    // // min und max PWM gripper
+    // float minPWMgripper = 0.011f;
+    // float maxPWMgripper = 0.115f;
 
-    // min und max PWM gripper
-    float minPWMgripper = 0.011f;
-    float maxPWMgripper = 0.115f;
+    // // PWM Werte setzen
+    // servoSecond.calibratePulseMinMax(minPWMsecond, maxPWMsecond);
+    // servoGripper.calibratePulseMinMax(minPWMgripper, maxPWMgripper);
 
-    // PWM Werte setzen
-    servoSecond.calibratePulseMinMax(minPWMsecond, maxPWMsecond);
-    servoGripper.calibratePulseMinMax(minPWMgripper, maxPWMgripper);
+    // enableMotionPlanner();
+    // setAcceleration(zMotor.getMaxAcceleration() * 0.5f);
+    // setSpeed(zMotor.getMaxPhysicalVelocity() * 0.5f);
 
-    enableMotionPlanner();
-    setAcceleration(0.5f);
-    setSpeed(0.5f);
+    // zMotor.resetPosition();
+    // zMotor.setRotation(0.0f);
+    // zMotor.setVelocity(0.0f);
+
+    // enable();
+
+    // zMotor.resetPosition();
+    // zMotor.setVelocity(0.0f);
+    // zMotor.setRotation(0.0f);
+
+    // printstate();
+
+    printf("vel: %f targetVel: %f\n",
+       zMotor.getVelocity(),
+       zMotor.getVelocityTarget());
+
+
+    zMotor.setMaxVelocity(zMotor.getMaxPhysicalVelocity()*0.5f);
+
+    zMotor.enableMotionPlanner();
+    zMotor.setMaxAcceleration(zMotor.getMaxAcceleration());
+
+    enableMotors = 0;  // zuerst aus
 
     zMotor.resetPosition();
-    zMotor.setVelocity(0.0f);
-    zMotor.setRotation(0.0f);
+    zMotor.setRotation(1.0f);
 
-    firstMotor.resetPosition();
-    firstMotor.setVelocity(0.0f);
-    firstMotor.setRotation(0.0f);
+    enable();          // erst danach einschalten
+    printf("PWM: %f\n", zMotor.getPWM());
 
-    enable();
-
-    printstate();
 
     printf("Ende der Initialisierung\n");
+while(true){
+    printf("current rot: %f\t", zMotor.getRotation());
+    printf("target rot: %f\t", zMotor.getRotationTarget());
+    printf("PWM: %f\n", zMotor.getPWM());
+}
 }
 
 //##########################################################################################
@@ -88,85 +108,80 @@ void Scara::init() {
 void Scara::cycle() {
     printf("beginn cycle:\t");
 
-    // zAnschlag = (anschlagZ.read() == 0);
-    // firstAnschlag = (anschlagFirst.read() == 0);
+    zAnschlag = (anschlagZ.read() == 0);
+    firstAnschlag = (anschlagFirst.read() == 0);
 
-    // printf("SchalterZ: %1d\n", zAnschlag);
+    printf("SchalterZ: %1d\n", zAnschlag);
 
-    // if (doStop) {
-    //     stop();
-    //     updateCurrent();
-    //     return;
-    // }
+    if (doStop) {
+        stop();
+        updateCurrent();
+        return;
+    }
 
-    // switch (status) {
-    //     case Status::InitialisierenZ:
-    //         printf("init_z\n");
-    //         zMotor.setVelocity(0.1f);
-    //         if (zAnschlag){
-    //             zMotor.setVelocity(0.0f);
-    //             zMotor.resetPosition();
-    //             zMotor.setRotation(0.0f);
+    switch (status) {
+        case Status::InitialisierenZ:
+            printf("init_z\n");
+            zMotor.setVelocity(0.1f);
+            if (zAnschlag){
+                zMotor.setVelocity(0.0f);
+                zMotor.resetPosition();
+                zMotor.setRotation(0.0f);
 
-    //             status = Status::InitialisierenSecond;
-    //         }
-    //         break;
+                status = Status::InitialisierenSecond;
+            }
+            break;
 
-    //     case Status::InitialisierenSecond:
-    //         printf("init_second\t");
+        case Status::InitialisierenSecond:
+            printf("init_second\n");
 
-    //         servoSecond.setPulseWidth(0.0f);
-    //         if (isCloseTo(servoSecond.getCurrentPulseWidth(), 0.0f, DELTA)){
-    //             status = Status::InitialisierenFirst;
-    //         }
-    //         break;
+            servoSecond.setPulseWidth(0.0f);
+            if (isCloseTo(servoSecond.getCurrentPulseWidth(), 0.0f, DELTA)){
+                status = Status::InitialisierenFirst;
+            }
+            break;
 
-    //     case Status::InitialisierenFirst:
-    //         printf("init_first\t");    
+        case Status::InitialisierenFirst:
+            printf("init_first\n");    
 
-    //         firstMotor.setVelocity(0.01f);
-    //         if (firstAnschlag){
-    //             firstMotor.setVelocity(0.0f);
-    //             firstMotor.resetPosition();
-    //             firstMotor.setRotation(0.0f);
+            firstMotor.setVelocity(0.01f);
+            if (firstAnschlag){
+                firstMotor.setVelocity(0.0f);
+                firstMotor.resetPosition();
+                firstMotor.setRotation(0.0f);
 
-    //             status = Status::Idle;
-    //         }
-    //         break;
+                status = Status::Idle;
+            }
+            break;
 
-    //     case Status::VialGreifen:
-    //         printf("vial Greiffen\t);
+        case Status::VialGreifen:
+            printf("vial Greiffen\n");
 
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+            updateTarget();
+            updateCurrent();
+            break;
 
-    //     case Status::VialPositionieren:
-    //         printf("vial positionieren\t);
+        case Status::VialPositionieren:
+            printf("vial positionieren\n");
             
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+            updateTarget();
+            updateCurrent();
+            break;
 
-    //     case Status::Idle:
-    //         printf("idle\t);
+        case Status::Idle:
+            printf("idle\n");
 
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+            updateTarget();
+            updateCurrent();
+            break;
 
-    //     case Status::Reset:
-    //         printf("reset\t);
+        case Status::Reset:
+            printf("reset\n");
 
-    //         break;
-    // }
-
-    zMotor.setRotation(2.0f);
-    firstMotor.setRotation(3.0f);
-
-    printf("ende cycle\n");
+            break;
 }
 
+}
 
 // Befehle
 //##########################################################################################
@@ -210,12 +225,12 @@ void Scara::placeVial(uint32_t height) {
 //##########################################################################################
 //
 // setzt die max. Servo und DC Beschleunigung
-void Scara::setAcceleration(float ratio) {
-    firstMotor.setMaxAcceleration(firstMotor.getMaxAcceleration() * ratio);
-    servoSecond.setMaxAcceleration(servoSecond.getMaxAcceleration() * ratio);
-    servoGripper.setMaxAcceleration(servoGripper.getMaxAcceleration() * ratio);
+void Scara::setAcceleration(float acceleration) {
+    firstMotor.setMaxAcceleration(acceleration / 2);
+    servoSecond.setMaxAcceleration(acceleration);
+    servoGripper.setMaxAcceleration(acceleration);
 
-    zMotor.setMaxAcceleration(zMotor.getMaxAcceleration() * ratio);
+    zMotor.setMaxAcceleration(acceleration * 2);
 }
 
 //##########################################################################################
@@ -223,12 +238,12 @@ void Scara::setAcceleration(float ratio) {
 //##########################################################################################
 //
 // setzt die max. Servo und DC Geschwindigkeit
-void Scara::setSpeed(float ratio) {
-    firstMotor.setMaxVelocity(firstMotor.getMaxVelocity() * ratio);
-    servoSecond.setMaxVelocity(ratio);
-    servoGripper.setMaxVelocity(ratio);
+void Scara::setSpeed(float speed) {
+    firstMotor.setMaxVelocity(speed / 2);
+    servoSecond.setMaxVelocity(speed);
+    servoGripper.setMaxVelocity(speed);
 
-    zMotor.setMaxVelocity(zMotor.getMaxVelocity() * ratio);
+    zMotor.setMaxVelocity(speed * 2);
 }
 
 //##########################################################################################
@@ -358,11 +373,11 @@ bool Scara::isDisabled() {
 //
 // return       uint32_t    akt. Geschwindigkeit
 uint32_t Scara::actualSpeed() {
-    // float first = fabs(firstMotor.getVelocity());
-    // // float second = fabs(servoSecond.getCurrentVelocity());
-    // float z = fabs(zMotor.getVelocity());
+    float first = fabs(firstMotor.getVelocity());
+    float second = fabs(servoSecond.getCurrentVelocity());
+    float z = fabs(zMotor.getVelocity());
 
-    return 0;//static_cast<uint32_t>(fmax(first, fmax(second, z)));
+    return static_cast<uint32_t>(fmax(first, fmax(second, z)));
 }
 
 //##########################################################################################
@@ -388,9 +403,9 @@ bool Scara::isMovingXY() {
         return true;
     }
 
-    // if (!isCloseTo(servoSecond.getCurrentVelocity(), 0.0f, DELTA)) {
-    //     return true;
-    // }
+    if (!isCloseTo(servoSecond.getCurrentVelocity(), 0.0f, DELTA)) {
+        return true;
+    }
 
     return false;
 }
@@ -414,11 +429,11 @@ bool Scara::isMovingZ() {
 //
 // return       uint32_t    max. Beschleunigung
 uint32_t Scara::getAcceleration() {
-    // if (isCloseTo(firstMotor.getMaxAcceleration() * 2,
-    //               servoSecond.getMaxAcceleration(),
-    //               DELTA)) {
-    //     return servoSecond.getMaxAcceleration();
-    // }
+    if (isCloseTo(firstMotor.getMaxAcceleration() * 2,
+                  servoSecond.getMaxAcceleration(),
+                  DELTA)) {
+        return servoSecond.getMaxAcceleration();
+    }
 
     return static_cast<uint32_t>(-1);
 }
@@ -448,7 +463,7 @@ bool Scara::positionReached() {
 void Scara::updateCurrent() {
     current.setScara(
         firstMotor.getRotation()*2.0f*M_PI,
-        // servoSecond.getCurrentPulseWidth()*M_PI,
+        servoSecond.getCurrentPulseWidth()*M_PI,
         LENGTH,
         zMotor.getRotation() * GEWINDESTEIGUNG);
 }
@@ -459,25 +474,21 @@ void Scara::updateCurrent() {
 //
 // return       printf
 void Scara::printstate(){
+    updateCurrent();
+    Pscara Pcur = current.getScara(LENGTH);
+    Pscara Ptarget = target.getScara(LENGTH);
 
-    printf("current rot: %f\t", zMotor.getRotation());
-    printf("target rot: %f\t", zMotor.getRotationTarget());
-    printf("PWM: %f\n", zMotor.getPWM());
-    // updateCurrent();
-    // Pscara Pcur = current.getScara(LENGTH);
-    // Pscara Ptarget = target.getScara(LENGTH);
+    printf("\n\nrot: %8f\tvel: %8f\tvolt: %8f\tpwm: %8f\trot_target: %8f\tenc: %ld\n\n",
+           zMotor.getRotation(),
+           zMotor.getVelocity(),
+           zMotor.getVoltage(),
+           zMotor.getPWM(),
+           zMotor.getRotationTarget(),
+           zMotor.getEncoderCount());
 
-    // printf("\n\nrot: %8f\tvel: %8f\tvolt: %8f\tpwm: %8f\trot_target: %8f\tenc: %ld\n\n",
-    //        zMotor.getRotation(),
-    //        zMotor.getVelocity(),
-    //        zMotor.getVoltage(),
-    //        zMotor.getPWM(),
-    //        zMotor.getRotationTarget(),
-    //        zMotor.getEncoderCount());
-
-    // printf("ENC M1: %ld\tM2: %ld\n", firstMotor.getEncoderCount(), zMotor.getEncoderCount());
-    // printf("pos.: M1  cur:%8f\ttarget:%8f\tM2  cur:%8f\ttarget:%8f\t\timpossible:%1d\n", Pcur.theta_1, Ptarget.theta_1, Pcur.z, Ptarget.z, Ptarget.impossible);
-    // printf("rot.   M1: %8f\tM2: %8f\t\t velocity     M1: %5f\tM2: %5f\n", firstMotor.getRotation(), zMotor.getRotation(), firstMotor.getMaxVelocity(), zMotor.getMaxVelocity());
+    printf("ENC M1: %ld\tM2: %ld\n", firstMotor.getEncoderCount(), zMotor.getEncoderCount());
+    printf("pos.: M1  cur:%8f\ttarget:%8f\tM2  cur:%8f\ttarget:%8f\t\timpossible:%1d\n", Pcur.theta_1, Ptarget.theta_1, Pcur.z, Ptarget.z, Ptarget.impossible);
+    printf("rot.   M1: %8f\tM2: %8f\t\t velocity     M1: %5f\tM2: %5f\n", firstMotor.getRotation(), zMotor.getRotation(), firstMotor.getMaxVelocity(), zMotor.getMaxVelocity());
     return;
 }
 
@@ -499,7 +510,7 @@ bool Scara::isCloseTo(double a, double b, float delta) {
 //
 // return       bool        true = gripper offen
 bool Scara::isGripperOpen() {
-    return 0;//isCloseTo(servoGripper.getCurrentPulseWidth(), OFFEN, DELTA);
+    return isCloseTo(servoGripper.getCurrentPulseWidth(), OFFEN, DELTA);
 }
 
 
@@ -509,31 +520,5 @@ bool Scara::isGripperOpen() {
 //
 // return       bool        true = gripper gesclossen
 bool Scara::isGripperClose() {
-    return 0;//isCloseTo(servoGripper.getCurrentPulseWidth(), GESCHLOSSEN, DELTA);
-}
-
-
-//##########################################################################################
-// debounce Funktionen für die Anschläge
-//##########################################################################################
-//
-// return       void        bool korrekt gesetzt
-void Scara::Zanschlag_Handler_rise() {
-    zAnschlag = true;
-    return;
-}
-
-void Scara::Zanschlag_Handler_fall() {
-    zAnschlag = false;
-    return;
-}
-
-void Scara::Firstanschlag_Handler_rise() {
-    firstAnschlag = true;
-    return;
-}
-
-void Scara::Firstanschlag_Handler_fall() {
-    firstAnschlag = false;
-    return;
+    return isCloseTo(servoGripper.getCurrentPulseWidth(), GESCHLOSSEN, DELTA);
 }

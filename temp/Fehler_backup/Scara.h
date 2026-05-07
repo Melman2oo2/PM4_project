@@ -8,7 +8,7 @@
 #include "DCMotor.h"
 #include "Servo.h"
 #include "Point.h"
-#include "DebounceIn.h"
+#include "DigitalIn.h"
 
 class Scara {
 public:
@@ -38,7 +38,7 @@ private:
     static constexpr float maximaleSpannung = 12.0f;
     static constexpr float uebersetzungsverhaeltnisZ = 31.0f;
     static constexpr float uebersetzungsverhaeltnisFirst = 488.0f;
-    static constexpr float motorkonstante = 180.0f / 12.0f;
+    static constexpr float motorkonstante = 28.0f / 12.0f;
 
     volatile bool zAnschlag = false;
     volatile bool firstAnschlag = false;
@@ -61,8 +61,8 @@ private:
     DigitalOut enableMotors;
     DCMotor zMotor;
 
-    DebounceIn anschlagZ;
-    DebounceIn anschlagFirst;
+    DigitalIn anschlagZ;
+    DigitalIn anschlagFirst;
 
 public:
     Scara();
@@ -97,12 +97,6 @@ public:
     bool positionReached();
 
     void printstate();
-
-    // Handler für Anschläge
-    void Zanschlag_Handler_rise();
-    void Zanschlag_Handler_fall();
-    void Firstanschlag_Handler_rise();
-    void Firstanschlag_Handler_fall();
 
 private:
     bool updateTarget();
