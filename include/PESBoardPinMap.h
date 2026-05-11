@@ -11,6 +11,12 @@
     #define PB_D2 PC_6
     #define PB_D3 PB_12
 
+    // Sensors analog Signal
+    #define PB_A0 PC_2
+    #define PB_A1 PC_3
+    #define PB_A2 PC_5
+    #define PB_A3 PB_1
+
     // DC-Motors
     #define PB_PWM_M1 PB_13
     #define PB_PWM_M2 PA_9
@@ -34,6 +40,8 @@
     #define PB_SD_MISO PC_11
     #define PB_SD_SCK PC_10
     #define PB_SD_CS PD_2
+
+    
 
 #else
 

@@ -10,6 +10,8 @@
 #include "pm4main.h"
 #include <cstdio>
 
+#include "servo.h"
+
 
 bool do_execute_main_task = false; // this variable will be toggled via the user button (blue button) and
                                    // decides whether to execute the main task or not
@@ -51,6 +53,10 @@ int main()
 
     pm4init();
 
+
+    
+    
+
     // this loop will run forever
     while (true) {
         main_task_timer.reset();
@@ -62,6 +68,9 @@ int main()
             
             // PM4 main task
             pm4main();
+
+
+            
             
             // visual feedback that the main task is executed, setting this once would actually be enough
             led1 = 1;

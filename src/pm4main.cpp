@@ -60,6 +60,8 @@ void pm4main(void) {
 //#####################################################################################
 void pm4reset(void) {
 
+    reset_desedimentation();
+
     if (PRINTFACTIVE) printf("* * * RESET * * *");
     
     getScara().reset();
