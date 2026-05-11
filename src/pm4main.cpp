@@ -43,7 +43,6 @@ t_RoboterStatus status;
 // Flags
 
 
-
 //#####################################################################################
 // PM4 INIT-Funktion
 //#####################################################################################
@@ -54,12 +53,13 @@ void pm4init(void) {
     
     init_desedimentation();
 
-    vialPresent_VialStation();
-
-    getMask_VialStation();
+    init_VialStation();
+    
+   
     
     return;
 }
+
 
 
 
@@ -70,14 +70,17 @@ void pm4main(void) {
     
     // cycle Funktionen aufrufen
    
-    //cycle_desedimentation();
+    cycle_desedimentation();
 
    
-    //cycle_InputOutput();
+    cycle_InputOuput();
     
-    
+    if(getMask_VialStation()){
+        vialPresent_VialStation();
+    }
    
     
+
     //=================================================================================
     // SCHRITTKETTE ROBOTERABLAUF
     //=================================================================================

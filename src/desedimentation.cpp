@@ -91,7 +91,7 @@ Servo_desedimentation.setPulseWidth(Servo_input);
 if(!isTimerDone_desedimentation()){
     
     desedimentation_timer --;
-    printf("%d", desedimentation_timer);
+    printf("%d\n", desedimentation_timer);
 
     if(forward){
         Servo_input = 0.0f;

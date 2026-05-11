@@ -4,7 +4,7 @@
 #define INPUT_OUTPUT_H
 
     void init_InputOutput();
-    void cycle_InputOutput();
+    void cycle_InputOuput();
 
     void startScan();
     bool isScanFinished();

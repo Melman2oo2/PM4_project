@@ -1,13 +1,28 @@
 // Vial_station.h
 
+extern DigitalIn Vial_0;
+extern DigitalIn Vial_1;
+extern DigitalIn Vial_2;
+extern DigitalIn Vial_3;
+extern DigitalIn Vial_4;
+
+
 #ifndef VIAL_STATION_H
 #define VIAL_STATION_H
 
+
+
+
     // Rueckmeldungen
+
+    void init_VialStation();
+
     bool getMask_VialStation();
 
-    bool vialPresent_VialStation();
+    Point vialPresent_VialStation();
     
     uint32_t nextVial_VialStation();
+
+   
 
 #endif

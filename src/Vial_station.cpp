@@ -10,6 +10,8 @@
 #include "Vial_station.h"
 #include "DebounceIn.h"
 
+#include "Point.h"
+
 //##########################################################################################
 // Globale Variable
 //##########################################################################################
@@ -26,26 +28,36 @@ static int colum = 1;
 // Schalter
 //..........................................................................................
 
-DigitalIn Vial_0(PA_3);
-DigitalIn Vial_1(PA_2);
-DigitalIn Vial_2(PA_10);
-DigitalIn Vial_3(PB_3);
-DigitalIn Vial_4(PB_5);
 
 
+    DigitalIn Vial_0(PA_9);
+    DigitalIn Vial_1(PC_7);
+    DigitalIn Vial_2(PB_6);
+    DigitalIn Vial_3(PA_7);
+    DigitalIn Vial_4(PA_6);
+
+    void init_VialStation(){
+    Vial_0.mode(PullUp);
+    Vial_1.mode(PullUp);
+    Vial_2.mode(PullUp);
+    Vial_3.mode(PullUp);
+    Vial_4.mode(PullUp);
+
+    }
 
 //##########################################################################################
 // Erhalte die Maske der Vials
 //##########################################################################################
 //
 // return      uint16_t          Maske der Vials
-bool getMask_Vialstation(){
+bool getMask_VialStation(){
     if(Vial_0 + Vial_1 + Vial_2 + Vial_3 + Vial_4){
-        printf("Vial ist umen");
+        printf("Vial ist umen: ");
         return 1;
     }else{
+        
+        printf("Vial nicht erkannt\n");
         return 0;
-        printf("Vial nicht erkannt");
     }     
 
     return 0;
@@ -56,52 +68,61 @@ bool getMask_Vialstation(){
 //##########################################################################################
 //
 // return       bool            true = Vial vorhanden
-bool vialPresent_VialStation(){
+Point VialPoint(0,0,0);
+
+Point vialPresent_VialStation(){
+    
 
     switch (colum)
     {
     case 1:
-        if(Vial_0){
-        return 1;
+        
+        if(Vial_0.read()){
+            printf("Vial_0\n");
+            return VialPoint(1.0, 1.0, 1.0);
         }else{
-        return 0;
+           nextVial_VialStation();            
         }
         break;
     
     case 2:
-        if(Vial_1){
-        return 1;
+        if(Vial_1.read()){
+            printf("Vial_1\n");
+            return VialPoint(2.0, 2.0, 2.0);
         }else{
-        return 0;
+            nextVial_VialStation();
         }
         break;    
     
     case 3:
-        if(Vial_2){
-        return 1;
+        if(Vial_2.read()){
+            printf("Vial_2\n");
+            return VialPoint(3.0, 3.0, 3.0);
         }else{
-        return 0;
+            nextVial_VialStation();
         }
         break;   
         
     case 4:
-        if(Vial_3){
-        return 1;
+        if(Vial_3.read()){
+            printf("Vial_3\n");
+            return VialPoint(4.0, 4.0, 4.0);
         }else{
-        return 0;
+            nextVial_VialStation();
         }
         break;    
 
     case 5:
-        if(Vial_4){
-        return 1;
+        if(Vial_4.read()){
+            printf("Vial_4\n");
+            return VialPoint(5.0, 5.0, 5.0);
         }else{
-        return 0;
+            nextVial_VialStation();
         }
         break;       
     
     }
-
+    return VialPoint(0, 0, 0);
     
 } 
 
@@ -116,7 +137,7 @@ uint32_t nextVial_VialStation(){
 
     if(colum > 5){
         colum = 1;
-        printf("next row");
+       
     } 
 
     
@@ -124,3 +145,4 @@ uint32_t nextVial_VialStation(){
   
     return (colum);
 }
+
