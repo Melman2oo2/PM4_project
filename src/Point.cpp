@@ -1,13 +1,19 @@
 // Point.cpp
 #include "Point.h"
 
-Point::Point(double xValue, double yValue, double zValue) {
+Point::Point() {
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+}
+
+Point::Point(float xValue, float yValue, float zValue) {
     x = xValue;
     y = yValue;
     z = zValue;
 }
 
-Point::Point(double theta_1, double theta_2, double length, double zValue) {
+Point::Point(float theta_1, float theta_2, float length, float zValue) {
     double x1 = length * std::cos(theta_1);
     double y1 = length * std::sin(theta_1);
 
@@ -33,11 +39,16 @@ Cylindrical Point::getCylindrical() const {
     return c;
 }
 
-Pscara Point::getScara(double length) const {
+Pscara Point::getScara(float length) const {
     Pscara p;
 
     double r = std::hypot(x, y);
     double phi = std::atan2(y, x);
+
+    if(r < 15.0) {
+        p.impossible = true;
+        return p;
+    }
 
     if(r * 0.95 > 2.0 * length) {
         p.impossible = true;
@@ -54,19 +65,31 @@ Pscara Point::getScara(double length) const {
     return p;
 }
 
-void Point::setCartesian(double xValue, double yValue, double zValue) {
+void Point::setCartesian(float xValue, float yValue, float zValue) {
     x = xValue;
     y = yValue;
     z = zValue;
 }
 
-void Point::setCylindrical(double r, double phi, double zValue) {
+void Point::setCartesian(Cartesian cartesian) {
+    x = cartesian.x;
+    y = cartesian.y;
+    z = cartesian.z;
+}
+
+void Point::setCylindrical(float r, float phi, float zValue) {
     x = r * std::cos(phi);
     y = r * std::sin(phi);
     z = zValue;
 }
 
-void Point::setScara(double theta_1, double theta_2, double length, double zValue) {
+void Point::setCylindrical(Cylindrical cylindrical) {
+    x = cylindrical.r * std::cos(cylindrical.phi);
+    y = cylindrical.r * std::sin(cylindrical.phi);
+    z = cylindrical.z;
+}
+
+void Point::setScara(float theta_1, float theta_2, float length, float zValue) {
     double x1 = length * std::cos(theta_1);
     double y1 = length * std::sin(theta_1);
 
@@ -75,5 +98,33 @@ void Point::setScara(double theta_1, double theta_2, double length, double zValu
 
     x = x1 + x2;
     y = y1 + y2;
+    z = zValue;
+}
+
+void Point::setScara(Pscara pscara) {
+    if(pscara.impossible) {
+        return;
+    }
+    
+    double x1 = pscara.theta_2 * std::cos(pscara.theta_1);
+    double y1 = pscara.theta_2 * std::sin(pscara.theta_1);
+
+    double x2 = pscara.theta_2 * std::cos(pscara.theta_1 + pscara.theta_2);
+    double y2 = pscara.theta_2 * std::sin(pscara.theta_1 + pscara.theta_2);
+
+    x = x1 + x2;
+    y = y1 + y2;
+    z = pscara.z;
+}
+
+void Point::setX(float xValue) {
+    x = xValue;
+}
+
+void Point::setY(float yValue) {
+    y = yValue;
+}
+
+void Point::setZ(float zValue) {
     z = zValue;
 }

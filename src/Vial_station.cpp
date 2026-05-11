@@ -7,8 +7,8 @@
 #include "PESBoardPinMap.h"
 
 // drivers
-#include "Vial_station.h"
 #include "DebounceIn.h"
+#include "Vial_station.h"
 
 #include "Point.h"
 
@@ -67,9 +67,7 @@ bool getMask_VialStation(){
 // erhalte, ob vial vorhanden
 //##########################################################################################
 //
-// return       bool            true = Vial vorhanden
-Point VialPoint(0,0,0);
-
+// return       Point            Position des Vials, oder (0,0,0) wenn kein Vial
 Point vialPresent_VialStation(){
     
 
@@ -78,8 +76,8 @@ Point vialPresent_VialStation(){
     case 1:
         
         if(Vial_0.read()){
-            printf("Vial_0\n");
-            return VialPoint(1.0, 1.0, 1.0);
+            printf("Vial_0 gefunden\n");
+            return Point(1.0, 1.0, 1.0);
         }else{
            nextVial_VialStation();            
         }
@@ -88,7 +86,7 @@ Point vialPresent_VialStation(){
     case 2:
         if(Vial_1.read()){
             printf("Vial_1\n");
-            return VialPoint(2.0, 2.0, 2.0);
+            return Point(2.0, 2.0, 2.0);
         }else{
             nextVial_VialStation();
         }
@@ -96,8 +94,8 @@ Point vialPresent_VialStation(){
     
     case 3:
         if(Vial_2.read()){
-            printf("Vial_2\n");
-            return VialPoint(3.0, 3.0, 3.0);
+            printf("Vial_2 gefunden\n");
+            return Point(3.0, 3.0, 3.0);
         }else{
             nextVial_VialStation();
         }
@@ -105,8 +103,8 @@ Point vialPresent_VialStation(){
         
     case 4:
         if(Vial_3.read()){
-            printf("Vial_3\n");
-            return VialPoint(4.0, 4.0, 4.0);
+            printf("Vial_3 gefunden\n");
+            return Point(4.0, 4.0, 4.0);
         }else{
             nextVial_VialStation();
         }
@@ -114,15 +112,15 @@ Point vialPresent_VialStation(){
 
     case 5:
         if(Vial_4.read()){
-            printf("Vial_4\n");
-            return VialPoint(5.0, 5.0, 5.0);
+            printf("Vial_4 gefunden\n");
+            return Point(5.0, 5.0, 5.0);
         }else{
             nextVial_VialStation();
         }
         break;       
     
     }
-    return VialPoint(0, 0, 0);
+    return Point(0.0, 0.0, 0.0);
     
 } 
 
@@ -139,9 +137,6 @@ uint32_t nextVial_VialStation(){
         colum = 1;
        
     } 
-
-    
-
   
     return (colum);
 }

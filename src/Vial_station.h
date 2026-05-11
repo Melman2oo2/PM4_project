@@ -1,5 +1,8 @@
 // Vial_station.h
 
+#include "mbed.h"
+#include "Point.h"
+
 extern DigitalIn Vial_0;
 extern DigitalIn Vial_1;
 extern DigitalIn Vial_2;
