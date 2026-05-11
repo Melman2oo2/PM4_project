@@ -5,21 +5,21 @@
 #include <cmath>
 
 struct Cartesian {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
 
 struct Cylindrical {
-    double r;
-    double phi;
-    double z;
+    float r;
+    float phi;
+    float z;
 };
 
 struct Pscara {
-    double theta_1;
-    double theta_2;
-    double z;
+    float theta_1;
+    float theta_2;
+    float z;
     bool impossible;
 };
 
@@ -30,16 +30,24 @@ private:
     double z;
 
 public:
-    Point(double xValue, double yValue, double zValue = 0.0);
-    Point(double theta_1, double theta_2, double length, double zValue);
+    Point();
+    Point(float xValue, float yValue, float zValue = 0.0);
+    Point(float theta_1, float theta_2, float length, float zValue);
 
     Cartesian getCartesian() const;
     Cylindrical getCylindrical() const;
-    Pscara getScara(double length) const;
+    Pscara getScara(float length) const;
 
-    void setCartesian(double xValue, double yValue, double zValue = 0.0);
-    void setCylindrical(double r, double phi, double zValue = 0.0);
-    void setScara(double theta_1, double theta_2, double length, double zValue = 0.0);
+    void setCartesian(float xValue, float yValue, float zValue = 0.0);
+    void setCartesian(Cartesian cartesian);
+    void setCylindrical(float r, float phi, float zValue = 0.0);
+    void setCylindrical(Cylindrical cylindrical);
+    void setScara(float theta_1, float theta_2, float length, float zValue = 0.0);
+    void setScara(Pscara pscara);
+
+    void setX(float xValue);
+    void setY(float yValue);
+    void setZ(float zValue);
 };
 
 #endif

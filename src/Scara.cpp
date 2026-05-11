@@ -1,13 +1,13 @@
 // Scara.h
 #include "Scara.h"
 
-Scara::Scara()
-    : target(0, 0, LENGTH, 0),
-      current(0, 0, 0),
-      doStop(false),
-      firstMotor(
-          PB_PWM_M1,
-          PB_ENC_A_M1,
+Scara::Scara(bool printActive):
+       target(0, 0, LENGTH, 0),
+       current(0, 0, 0),
+       doStop(false),
+       firstMotor(
+           PB_PWM_M1,
+           PB_ENC_A_M1,
           PB_ENC_B_M1,
           uebersetzungsverhaeltnisFirst,
           motorkonstante,
@@ -22,9 +22,11 @@ Scara::Scara()
           uebersetzungsverhaeltnisZ,
           motorkonstante,
           maximaleSpannung),
-      anschlagZ(PC_0),
-      anschlagFirst(PC_1)
+      anschlagZ(PC_0, PullUp),
+      anschlagFirst(PC_1, PullUp),
+      grabPlacePoint(0, 0, 0)
       {
+        this->printActive = printActive;
         init();
       }
 
@@ -36,7 +38,11 @@ Scara::Scara()
 // Einmaliges Aufrufen am Anfang
 void Scara::init() {
 
-    printf("beginn der Initialisierung\n");
+    if(printActive) printf("beginn der Initialisierung\n");
+
+    status = Status::InitialisierenZ;
+
+    // Anschlagsschalter konfigurieren//
 
     anschlagZ.rise(callback(this, &Scara::Zanschlag_Handler_rise), 20ms);
     anschlagZ.fall(callback(this, &Scara::Zanschlag_Handler_fall), 20ms);
@@ -44,22 +50,24 @@ void Scara::init() {
     anschlagFirst.rise(callback(this, &Scara::Firstanschlag_Handler_rise), 20ms);
     anschlagFirst.fall(callback(this, &Scara::Firstanschlag_Handler_fall), 20ms);
 
-    status = Status::InitialisierenZ;
+    zAnschlag = !(anschlagZ.read() == 0);
+    firstAnschlag = !(anschlagFirst.read() == 0);
+
+    //Servos konfigurieren//
 
     // min und max PWM second
-    float minPWMsecond = 0.011f;
-    float maxPWMsecond = 0.115f;
-
-    float servo_D1_ang_min = 0.03f;
-    float servo_D1_ang_max = 0.1115f;
+    float minPWMsecond = 0.03f;
+    float maxPWMsecond = 0.1115f;
 
     // min und max PWM gripper
-    float minPWMgripper = 0.011f;
-    float maxPWMgripper = 0.115f;
+    float minPWMgripper = 0.045f;
+    float maxPWMgripper = 0.11f;
 
     // PWM Werte setzen
     servoSecond.calibratePulseMinMax(minPWMsecond, maxPWMsecond);
     servoGripper.calibratePulseMinMax(minPWMgripper, maxPWMgripper);
+
+    // Motoren konfigurieren//
 
     enableMotionPlanner();
     setAcceleration(0.5f);
@@ -73,11 +81,9 @@ void Scara::init() {
     firstMotor.setVelocity(0.0f);
     firstMotor.setRotation(0.0f);
 
-    enable();
-
     printstate();
 
-    printf("Ende der Initialisierung\n");
+    if(printActive) printf ("Ende der Initialisierung\n");
 }
 
 //##########################################################################################
@@ -86,85 +92,170 @@ void Scara::init() {
 //
 // Wiederhohlte Aufrufe (50Hz)
 void Scara::cycle() {
-    printf("beginn cycle:\t");
+    if(printActive) printf("\nbeginn cycle:\t");
 
-    // zAnschlag = (anschlagZ.read() == 0);
-    // firstAnschlag = (anschlagFirst.read() == 0);
+    if(!isEnabled()) enable();
 
-    // printf("SchalterZ: %1d\n", zAnschlag);
+    openGripper();
 
-    // if (doStop) {
-    //     stop();
-    //     updateCurrent();
-    //     return;
-    // }
+    if (doStop) {
+        stop();
+        updateCurrent();
+        return;
+    }
 
-    // switch (status) {
-    //     case Status::InitialisierenZ:
-    //         printf("init_z\n");
-    //         zMotor.setVelocity(0.1f);
-    //         if (zAnschlag){
-    //             zMotor.setVelocity(0.0f);
-    //             zMotor.resetPosition();
-    //             zMotor.setRotation(0.0f);
+    switch (status) {
+        case Status::InitialisierenZ:
+            if(printActive) printf("init_z\t");
+            zMotor.setVelocity(0.1f);
 
-    //             status = Status::InitialisierenSecond;
-    //         }
-    //         break;
+            if (zAnschlag){
+                zMotor.setVelocity(0.0f);
+                zMotor.resetPosition();
+                zMotor.setRotation(0.0f);
 
-    //     case Status::InitialisierenSecond:
-    //         printf("init_second\t");
+                status = Status::InitialisierenSecond;
+            }
+            break;
 
-    //         servoSecond.setPulseWidth(0.0f);
-    //         if (isCloseTo(servoSecond.getCurrentPulseWidth(), 0.0f, DELTA)){
-    //             status = Status::InitialisierenFirst;
-    //         }
-    //         break;
+        case Status::InitialisierenSecond:
+            if(printActive) printf("init_second\t");
 
-    //     case Status::InitialisierenFirst:
-    //         printf("init_first\t");    
+            servoSecond.setPulseWidth(0.0f);
+            if (isCloseTo(servoSecond.getCurrentPulseWidth(), 0.0f, DELTA)){
+                status = Status::InitialisierenFirst;
+            }
+            break;
 
-    //         firstMotor.setVelocity(0.01f);
-    //         if (firstAnschlag){
-    //             firstMotor.setVelocity(0.0f);
-    //             firstMotor.resetPosition();
-    //             firstMotor.setRotation(0.0f);
+        case Status::InitialisierenFirst:
+            if(printActive) printf("init_first\t");
+            firstMotor.setVelocity(0.01f);
 
-    //             status = Status::Idle;
-    //         }
-    //         break;
+            if (firstAnschlag){
+                firstMotor.setVelocity(0.0f);
+                firstMotor.resetPosition();
+                firstMotor.setRotation(0.0f);
 
-    //     case Status::VialGreifen:
-    //         printf("vial Greiffen\t);
+                status = Status::Idle;
+            }
+            break;
 
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+        case Status::VialGreifen0:
+            if(printActive) printf("vial Greiffen\t");
 
-    //     case Status::VialPositionieren:
-    //         printf("vial positionieren\t);
+            // Greiffer nach oben fahren und öffnen
+            target.setZ(-1.0f);
+            openGripper();
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached()) {
+                status = Status::VialGreifenXY;
+            }
+            break;
+
+        case Status::VialGreifenXY:
+            if(printActive) printf("vial Greiffen XY\t");
+
+            // Greiffer über das Vial fahren
+            target = grabPlacePoint;
+            target.setZ(-1.0f);
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached() && isGripperOpen()) {
+                status = Status::VialGreifenZ;
+            }
+            break;
+        
+        case Status::VialGreifenZ:
+            if(printActive) printf("vial Greiffen Z\t");
+
+            // Zum Vial fahren
+            target = grabPlacePoint;
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached()) {
+                closeGripper();
+                status = Status::Idle;
+            }
+
+            break;
+
+        case Status::VialPositionieren0:
+            if(printActive) printf("vial positionieren\t");
+
+            // Greiffer nach oben und schliessen
+            target.setZ(-1.0f);
+            closeGripper();
             
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+            updateTarget();
+            updateCurrent();
 
-    //     case Status::Idle:
-    //         printf("idle\t);
+            if (positionReached()) {
+                status = Status::VialPositionierenXY;
+            }
+            break;
 
-    //         updateTarget();
-    //         updateCurrent();
-    //         break;
+        case Status::VialPositionierenXY:
+            if(printActive) printf("vial positionieren XY\t");
 
-    //     case Status::Reset:
-    //         printf("reset\t);
+            // Greiffer über Ziel fahren
+            target = grabPlacePoint;
+            target.setZ(-1.0f);
 
-    //         break;
-    // }
+            updateTarget();
+            updateCurrent();
 
-    zMotor.setRotation(2.0f);
-    firstMotor.setRotation(3.0f);
+            if(positionReached() && isGripperClose()) {
+                status = Status::VialPositionierenZ;
+            }
+            break;
 
-    printf("ende cycle\n");
+        case Status::VialPositionierenZ:
+            if(printActive) printf("vial positionieren Z\t");
+
+            // Zum Ziel fahren und öffnen
+            target = grabPlacePoint;
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached()) {
+                openGripper();
+                status = Status::Idle;
+            }
+            break;
+
+        case Status::Idle:
+            if(printActive) printf("idle\t");
+
+            updateTarget();
+            updateCurrent();
+            break;
+
+        case Status::Reset:
+            if(printActive) printf("reset\t");
+
+            target.setZ(-1.0f);
+            updateTarget();
+
+            if (positionReached()) {
+                disable();            }
+                status = Status::InitialisierenZ;
+            break;
+    }
+
+    if(printActive) printf("ende cycle\n");
+}
+
+void Scara::reset() {
+    status = Status::Reset;
+    cycle();
 }
 
 
@@ -194,7 +285,26 @@ bool Scara::updateTarget() {
 //##########################################################################################
 //
 // greifft die Vial basierend auf der höhe des Vials
-void Scara::grabVial(uint32_t height) {
+void Scara::grabVial(Point p) {
+    // wenn am Initialisieren, Greifen oder Platzieren die Aktion ignorieren
+        switch(status) {
+        case Status::InitialisierenZ:
+        case Status::InitialisierenSecond:
+        case Status::InitialisierenFirst:
+        case Status::VialGreifen0:
+        case Status::VialGreifenXY:
+        case Status::VialGreifenZ:
+        case Status::VialPositionieren0:
+        case Status::VialPositionierenXY:
+        case Status::VialPositionierenZ:
+            return;
+        default:
+            break;
+    }
+
+    // grab Vial ausführen
+    grabPlacePoint = p;
+    status = Status::VialGreifen0;
 }
 
 //##########################################################################################
@@ -202,7 +312,26 @@ void Scara::grabVial(uint32_t height) {
 //##########################################################################################
 //
 // platziert das Vial basierend auf der Zielhöhe des Vials
-void Scara::placeVial(uint32_t height) {
+void Scara::placeVial(Point p) {
+    // wenn am Initialisieren, Greifen oder Platzieren die Aktion ignorieren
+    switch(status) {
+        case Status::InitialisierenZ:
+        case Status::InitialisierenSecond:
+        case Status::InitialisierenFirst:
+        case Status::VialGreifen0:
+        case Status::VialGreifenXY:
+        case Status::VialGreifenZ:
+        case Status::VialPositionieren0:
+        case Status::VialPositionierenXY:
+        case Status::VialPositionierenZ:
+            return;
+        default:
+            break;
+    }
+
+    // place Vial ausführen
+    grabPlacePoint = p;
+    status = Status::VialPositionieren0;
 }
 
 //##########################################################################################
@@ -254,13 +383,13 @@ void Scara::stop() {
 void Scara::enable() {
     enableMotors = 1;
 
-    // if (!servoSecond.isEnabled()) {
-    //     servoSecond.enable();
-    // }
+    if (!servoSecond.isEnabled()) {
+        servoSecond.enable();
+    }
 
-    // if (!servoGripper.isEnabled()) {
-    //     servoGripper.enable();
-    // }
+    if (!servoGripper.isEnabled()) {
+        servoGripper.enable();
+    }
 }
 
 //##########################################################################################
@@ -357,12 +486,12 @@ bool Scara::isDisabled() {
 //##########################################################################################
 //
 // return       uint32_t    akt. Geschwindigkeit
-uint32_t Scara::actualSpeed() {
-    // float first = fabs(firstMotor.getVelocity());
-    // // float second = fabs(servoSecond.getCurrentVelocity());
-    // float z = fabs(zMotor.getVelocity());
+float Scara::actualSpeed() {
+    float first = fabs(firstMotor.getVelocity());
+    float second = fabs(servoSecond.getCurrentVelocity());
+    float z = fabs(zMotor.getVelocity());
 
-    return 0;//static_cast<uint32_t>(fmax(first, fmax(second, z)));
+    return (fmax(first, fmax(second, z)));
 }
 
 //##########################################################################################
@@ -371,7 +500,7 @@ uint32_t Scara::actualSpeed() {
 //
 // return       bool        true = Scara bewegt sich
 bool Scara::isMoving() {
-    if (doStop) return true;
+
     if (isMovingXY()) return true;
     if (isMovingZ()) return true;
 
@@ -388,9 +517,9 @@ bool Scara::isMovingXY() {
         return true;
     }
 
-    // if (!isCloseTo(servoSecond.getCurrentVelocity(), 0.0f, DELTA)) {
-    //     return true;
-    // }
+    if (!isCloseTo(servoSecond.getCurrentVelocity(), 0.0f, DELTA)) {
+        return true;
+    }
 
     return false;
 }
@@ -413,14 +542,14 @@ bool Scara::isMovingZ() {
 //##########################################################################################
 //
 // return       uint32_t    max. Beschleunigung
-uint32_t Scara::getAcceleration() {
-    // if (isCloseTo(firstMotor.getMaxAcceleration() * 2,
-    //               servoSecond.getMaxAcceleration(),
-    //               DELTA)) {
-    //     return servoSecond.getMaxAcceleration();
-    // }
+float Scara::getAcceleration() {
+    if (isCloseTo(firstMotor.getMaxAcceleration() * 2,
+                  servoSecond.getMaxAcceleration(),
+                  DELTA)) {
+        return servoSecond.getMaxAcceleration();
+    }
 
-    return static_cast<uint32_t>(-1);
+    return -1.0f;
 }
 
 //##########################################################################################
@@ -448,7 +577,7 @@ bool Scara::positionReached() {
 void Scara::updateCurrent() {
     current.setScara(
         firstMotor.getRotation()*2.0f*M_PI,
-        // servoSecond.getCurrentPulseWidth()*M_PI,
+        servoSecond.getCurrentPulseWidth()*M_PI,
         LENGTH,
         zMotor.getRotation() * GEWINDESTEIGUNG);
 }
@@ -460,9 +589,16 @@ void Scara::updateCurrent() {
 // return       printf
 void Scara::printstate(){
 
-    printf("current rot: %f\t", zMotor.getRotation());
-    printf("target rot: %f\t", zMotor.getRotationTarget());
-    printf("PWM: %f\n", zMotor.getPWM());
+    if(!printActive) return;
+
+    printf("PWM: %f\t", servoGripper.getCurrentPulseWidth());
+    printf("state offen: %1d\tstate geschlossen: %1d\n", isGripperOpen(), isGripperClose());
+
+    // printf("Z Anschlag: %1d\tFirst Anschlag: %1d\n", zAnschlag, firstAnschlag);
+
+    // printf("current rot: %f\t", zMotor.getRotation());
+    // printf("target rot: %f\t", zMotor.getRotationTarget());
+    // printf("PWM: %f\n", zMotor.getPWM());
     // updateCurrent();
     // Pscara Pcur = current.getScara(LENGTH);
     // Pscara Ptarget = target.getScara(LENGTH);
@@ -499,7 +635,7 @@ bool Scara::isCloseTo(double a, double b, float delta) {
 //
 // return       bool        true = gripper offen
 bool Scara::isGripperOpen() {
-    return 0;//isCloseTo(servoGripper.getCurrentPulseWidth(), OFFEN, DELTA);
+    return isCloseTo(servoGripper.getCurrentPulseWidth(), OFFEN, DELTA);
 }
 
 
@@ -509,7 +645,7 @@ bool Scara::isGripperOpen() {
 //
 // return       bool        true = gripper gesclossen
 bool Scara::isGripperClose() {
-    return 0;//isCloseTo(servoGripper.getCurrentPulseWidth(), GESCHLOSSEN, DELTA);
+    return isCloseTo(servoGripper.getCurrentPulseWidth(), GESCHLOSSEN, DELTA);
 }
 
 

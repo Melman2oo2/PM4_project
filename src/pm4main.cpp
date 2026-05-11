@@ -26,8 +26,8 @@
 // PM2 Globale Deklarationen
 //#####################################################################################
 
-static Scara& getScara() {
-    static Scara scara;
+Scara& getScara() {
+    static Scara scara(PRINTFACTIVE);
     return scara;
 }
 
@@ -50,8 +50,6 @@ void pm4init(void) {
 void pm4main(void) {
 
     getScara().cycle();
-    
-    getScara().printstate();
 
     return;
 }
@@ -63,9 +61,8 @@ void pm4main(void) {
 void pm4reset(void) {
 
     if (PRINTFACTIVE) printf("* * * RESET * * *");
-    getScara().stop();
-
-    getScara().disable();
+    
+    getScara().reset();
 
     return;
 }

@@ -19,20 +19,13 @@ public:
 
 
 private:
-    static constexpr float SCARA_FIRST_MAX = 1.0f;
-    static constexpr float SCARA_FIRST_MIN = 0.0f;
-
-    static constexpr float SCARA_SECOND_MAX = 0.0f;
-    static constexpr float SCARA_SECOND_MIN = 1.0f;
-
-    static constexpr float SCARA_GRIPPER_MAX = 0.0f;
-    static constexpr float SCARA_GRIPPER_MIN = 1.0f;
+    bool printActive;
 
     static constexpr float DELTA = 0.001f;
     static constexpr float LENGTH = 20.0f;
     static constexpr float GEWINDESTEIGUNG = -8.0f;
 
-    static constexpr float OFFEN = 1.0f;
+    static constexpr float OFFEN = 0.9f;
     static constexpr float GESCHLOSSEN = 0.0f;
 
     static constexpr float maximaleSpannung = 12.0f;
@@ -42,13 +35,19 @@ private:
 
     volatile bool zAnschlag = false;
     volatile bool firstAnschlag = false;
+    
+    Point grabPlacePoint;
 
     enum class Status {
         InitialisierenZ,
         InitialisierenSecond,
         InitialisierenFirst,
-        VialGreifen,
-        VialPositionieren,
+        VialGreifen0,
+        VialGreifenXY,
+        VialGreifenZ,
+        VialPositionieren0,
+        VialPositionierenXY,
+        VialPositionierenZ,
         Idle,
         Reset
     };
@@ -65,14 +64,15 @@ private:
     DebounceIn anschlagFirst;
 
 public:
-    Scara();
+    Scara(bool printActive = false);
 
 
     void init();
     void cycle();
+    void reset();
 
-    void grabVial(uint32_t height);
-    void placeVial(uint32_t height);
+    void grabVial(Point p);
+    void placeVial(Point p);
 
     void setAcceleration(float acceleration);
     void setSpeed(float speed);
@@ -87,16 +87,18 @@ public:
     bool isEnabled();
     bool isDisabled();
 
-    uint32_t actualSpeed();
+    float actualSpeed();
 
     bool isMoving();
     bool isMovingXY();
     bool isMovingZ();
 
-    uint32_t getAcceleration();
+    float getAcceleration();
     bool positionReached();
 
     void printstate();
+
+private:
 
     // Handler für Anschläge
     void Zanschlag_Handler_rise();
@@ -104,7 +106,6 @@ public:
     void Firstanschlag_Handler_rise();
     void Firstanschlag_Handler_fall();
 
-private:
     bool updateTarget();
     void updateCurrent();
 
