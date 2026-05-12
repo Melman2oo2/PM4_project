@@ -20,6 +20,7 @@ public:
 
 private:
     bool printActive;
+    bool doeshomeing = false;
 
     static constexpr float DELTA = 0.001f;
     static constexpr float LENGTH = 20.0f;
@@ -42,6 +43,7 @@ private:
         InitialisierenZ,
         InitialisierenSecond,
         InitialisierenFirst,
+        InitialisierenWeg,
         VialGreifen0,
         VialGreifenXY,
         VialGreifenZ,

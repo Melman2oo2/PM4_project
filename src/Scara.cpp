@@ -104,9 +104,18 @@ void Scara::cycle() {
         return;
     }
 
+    if(!doeshomeing && firstAnschlag) {
+        status = Status::Reset;
+    }
+
+    if(!doeshomeing && zAnschlag) {
+        status = Status::Reset;
+    }
+
     switch (status) {
         case Status::InitialisierenZ:
             if(printActive) printf("init_z\t");
+            doeshomeing = true;
             zMotor.setVelocity(0.1f);
 
             if (zAnschlag){
@@ -136,6 +145,19 @@ void Scara::cycle() {
                 firstMotor.resetPosition();
                 firstMotor.setRotation(0.0f);
 
+                target.setCartesian(0.0f, 15.0f, -1.0f);
+                status = Status::InitialisierenWeg;
+            }
+            break;
+
+        case Status::InitialisierenWeg:
+            if(printActive) printf("init_weg\t");
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached()) {
+                doeshomeing = false;
                 status = Status::Idle;
             }
             break;
