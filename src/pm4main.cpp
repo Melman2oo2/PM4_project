@@ -31,6 +31,44 @@ Scara& getScara() {
     return scara;
 }
 
+// Tags für die Zustände
+bool first_Vial = true;
+bool kurzVorEnde = false;
+
+// Globale Punkte
+Point p_Desedimentation(10.0f, 10.0f, 0.0f);
+Point p_idle(0.0f, 0.0f, 0.0f);
+Point p_ENANTIOS(20.0f, 20.0f, 0.0f);
+Point p_LidClose(30.0f, 30.0f, 0.0f);
+Point p_LidOpen(40.0f, 40.0f, 0.0f);
+
+Point outputs[] = {
+    Point(0.0f, 0.0f, 0.0f),
+    Point(0.0f, 0.0f, 0.0f),
+    Point(0.0f, 0.0f, 0.0f),
+    Point(0.0f, 0.0f, 0.0f),
+    Point(0.0f, 0.0f, 0.0f),
+    Point(0.0f, 0.0f, 0.0f)
+};
+
+
+enum class PM4State {
+    Start,
+    Vial_from_Station,
+    Vial_to_Desedimentation,
+    Lid_from_ENANTIOS,
+    Lid_to_holder,
+    Vial_from_ENANTIOS,
+    Vial_to_Output,
+    Vial_from_Desedimentation,
+    Vial_to_ENANTIOS,
+    Lid_from_holder,
+    Lid_to_ENANTIOS,
+    Ende,
+    ERROR
+};PM4State state = PM4State::Start;
+PM4State error_from_state = PM4State::ERROR;
+int output_counter = 0;
 
 
 //#####################################################################################
@@ -40,6 +78,10 @@ void pm4init(void) {
 
     // init der Module
     getScara();
+    init_VialStation();
+    init_desedimentation();
+    init_InputOutput();
+
     return;
 }
 
@@ -48,9 +90,209 @@ void pm4init(void) {
 // PM4 MAIN-Funktion
 //#####################################################################################
 void pm4main(void) {
+    if(PRINTFACTIVE) printf("cycle begin\t");
 
+    // cycle der Module
     getScara().cycle();
+    cycle_desedimentation();
+    cycle_InputOuput();
 
+    // Swicht der State Machine
+    switch (state)
+    {
+    case PM4State::Start:
+        if(PRINTFACTIVE) printf("State: Start\t");
+        // code for Start state
+
+        if(getScara().isFinished()) {
+            getScara().grab(vialPresent_VialStation());
+            state = PM4State::Vial_from_Station;
+        }
+        break;
+
+    case PM4State::Vial_from_Station:
+        if(PRINTFACTIVE) printf("State: Vial_from_Station\t");
+        // code for Vial_from_Station state
+
+        if(getScara().isFinished()) {
+            getScara().place(p_Desedimentation);
+            state = PM4State::Vial_to_Desedimentation;
+        }
+        break;
+
+    case PM4State::Vial_to_Desedimentation:
+        if(PRINTFACTIVE) printf("State: Vial_to_Desedimentation\t");
+        // code for Vial_to_Desedimentation state
+
+        if(getScara().isFinished()) {
+            start_desedimentation();
+            // wenn nicht erstes vial, warten bis scan fertig, sonst direkt weiter
+            if(!first_Vial && !isScanFinished()) break;
+            getScara().grab(p_LidClose);
+            state = PM4State::Lid_from_ENANTIOS;
+        }
+        break;
+
+    case PM4State::Lid_from_ENANTIOS:
+        if(PRINTFACTIVE) printf("State: Lid_from_ENANTIOS\t");
+        // code for Lid_from_ENANTIOS state
+
+        if(getScara().isFinished()) {
+            getScara().place(p_LidOpen);
+            state = PM4State::Lid_to_holder;
+        }
+        break;
+
+    case PM4State::Lid_to_holder:
+        if(PRINTFACTIVE) printf("State: Lid_to_holder\t");
+        // code for Place_Lid state
+
+        if(getScara().isFinished()) {
+            
+            // unterscheifung, first Vial oder nicht
+            if(first_Vial) {
+                if(isVialOben_desedimentation() && isTimerDone_desedimentation()) {
+                first_Vial = false;
+                getScara().grab(p_Desedimentation);
+                state = PM4State::Vial_from_Desedimentation;
+                }
+
+            } else {
+                getScara().grab(p_ENANTIOS);
+                state = PM4State::Vial_from_ENANTIOS;
+            }
+
+
+        }
+        break;
+
+    case PM4State::Vial_from_ENANTIOS:
+        if(PRINTFACTIVE) printf("State: Vial_from_ENANTIOS\t");
+        // code for Vial_from_ENANTIOS state
+
+        if(getScara().isFinished()) {
+            // error, wenn kein output platz mehr da
+            if(output_counter >= 6) {
+                error_from_state = PM4State::Vial_from_ENANTIOS;
+                state = PM4State::ERROR;
+            } else {
+                getScara().place(outputs[output_counter]);
+                output_counter++;
+
+            }
+        }
+        break;
+
+    case PM4State::Vial_to_Output:
+        if(PRINTFACTIVE) printf("State: Vial_to_Output\t");
+        // code for Vial_to_Output state
+
+        if(getScara().isFinished()) {
+            
+            // unterscheifung, last Vial oder nicht
+            if(kurzVorEnde) {
+                getScara().grab(p_LidOpen);
+                state = PM4State::Lid_from_holder;
+            } else {
+                getScara().grab(p_Desedimentation);
+                state = PM4State::Vial_from_Desedimentation;
+            }
+        }
+        break;
+
+    case PM4State::Vial_from_Desedimentation:
+        if(PRINTFACTIVE) printf("State: Vial_from_Desedimentation\t");
+        // code for Vial_from_Desedimentation state
+
+        if(getScara().isFinished()) {
+            getScara().place(p_ENANTIOS);
+            state = PM4State::Vial_to_ENANTIOS;
+
+        }
+        break;
+
+    case PM4State::Vial_to_ENANTIOS:
+        if(PRINTFACTIVE) printf("State: Vial_to_ENANTIOS\t");
+        // code for Vial_to_ENANTIOS state
+
+        if(getScara().isFinished()) {
+            getScara().grab(p_LidOpen);
+            state = PM4State::Lid_from_holder;
+
+        }
+        break;
+
+    case PM4State::Lid_from_holder:
+        if(PRINTFACTIVE) printf("State: Lid_from_holder\t");
+        // code for Lid_from_holder state
+
+        if(getScara().isFinished()) {
+            getScara().place(p_LidClose);
+            state = PM4State::Lid_to_ENANTIOS;
+
+        }
+        break;
+
+    case PM4State::Lid_to_ENANTIOS:
+        if(PRINTFACTIVE) printf("State: Lid_to_ENANTIOS\t");
+        // code for Lid_to_ENANTIOS state
+
+        if(getScara().isFinished()) {
+            if(kurzVorEnde) {
+                getScara().target = p_idle;
+                state = PM4State::Ende;
+            } else {
+                if(light_overdose()){
+                    error_from_state = PM4State::Lid_to_ENANTIOS;
+                    state = PM4State::ERROR;
+                    break;
+                }
+                
+                startScan();
+
+                if(kurzVorEnde || !hasNextVial_VialStation()) {
+                    kurzVorEnde = true;
+                    if(isScanFinished()) {
+                        getScara().grab(p_LidClose);
+                        state = PM4State::Lid_from_ENANTIOS;
+                    }
+                }else{
+                getScara().grab(vialPresent_VialStation());
+                state = PM4State::Vial_from_Station;
+                }
+            }
+            
+        }
+        break;
+
+    case PM4State::Ende:
+        if(PRINTFACTIVE) printf("State: Ende\t");
+        // code for Ende state
+
+        break;
+
+    case PM4State::ERROR:
+    default:
+        if(PRINTFACTIVE) printf("State: ERROR\t");
+        getScara().stop();
+        // code for ERROR state
+        printf("Error in state: \t");
+        switch (error_from_state) {
+            case PM4State::Vial_from_ENANTIOS:
+                printf("No more output places\t");
+                break;
+            case PM4State::Lid_to_ENANTIOS:
+                printf("Licht zu hell\t");
+                break;
+            default:
+                printf("Unknown\t");
+                break;
+        }
+        break;
+    }
+
+
+    if(PRINTFACTIVE) printf("cycle end\n");
     return;
 }
 

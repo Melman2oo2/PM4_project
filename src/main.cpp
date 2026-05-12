@@ -67,10 +67,7 @@ int main()
         if (do_execute_main_task) {
             
             // PM4 main task
-            pm4main();
-
-
-            
+            pm4main();            
             
             // visual feedback that the main task is executed, setting this once would actually be enough
             led1 = 1;

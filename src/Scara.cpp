@@ -227,6 +227,20 @@ void Scara::cycle() {
 
             if(positionReached()) {
                 openGripper();
+                status = Status::VialPositionierenWeg;
+            }
+            break;
+
+        case Status::VialPositionierenWeg:
+            if(printActive) printf("vial positionieren weg\t");
+
+            // Greiffer nach oben fahren
+            target.setZ(-1.0f);
+
+            updateTarget();
+            updateCurrent();
+
+            if(positionReached()) {
                 status = Status::Idle;
             }
             break;
@@ -240,13 +254,7 @@ void Scara::cycle() {
 
         case Status::Reset:
             if(printActive) printf("reset\t");
-
-            target.setZ(-1.0f);
-            updateTarget();
-
-            if (positionReached()) {
-                disable();            }
-                status = Status::InitialisierenZ;
+            stop();
             break;
     }
 
@@ -285,7 +293,7 @@ bool Scara::updateTarget() {
 //##########################################################################################
 //
 // greifft die Vial basierend auf der höhe des Vials
-void Scara::grabVial(Point p) {
+void Scara::grab(Point p) {
     // wenn am Initialisieren, Greifen oder Platzieren die Aktion ignorieren
         switch(status) {
         case Status::InitialisierenZ:
@@ -312,7 +320,7 @@ void Scara::grabVial(Point p) {
 //##########################################################################################
 //
 // platziert das Vial basierend auf der Zielhöhe des Vials
-void Scara::placeVial(Point p) {
+void Scara::place(Point p) {
     // wenn am Initialisieren, Greifen oder Platzieren die Aktion ignorieren
     switch(status) {
         case Status::InitialisierenZ:
@@ -534,6 +542,18 @@ bool Scara::isMovingZ() {
         return true;
     }
 
+    return false;
+}
+
+//##########################################################################################
+// Statusabfrage, ob Bewegung abgeschlossen ist
+//##########################################################################################
+//
+// return       bool            true = Bewegung abgeschlossen
+bool Scara::isFinished() {
+    if(status==Status::Idle && positionReached()) {
+        return true;
+    }
     return false;
 }
 

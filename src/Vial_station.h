@@ -20,7 +20,7 @@ extern DigitalIn Vial_4;
 
     void init_VialStation();
 
-    bool getMask_VialStation();
+    bool hasNextVial_VialStation();
 
     Point vialPresent_VialStation();
     

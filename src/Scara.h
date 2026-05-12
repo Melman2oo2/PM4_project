@@ -48,6 +48,7 @@ private:
         VialPositionieren0,
         VialPositionierenXY,
         VialPositionierenZ,
+        VialPositionierenWeg,
         Idle,
         Reset
     };
@@ -71,8 +72,8 @@ public:
     void cycle();
     void reset();
 
-    void grabVial(Point p);
-    void placeVial(Point p);
+    void grab(Point p);
+    void place(Point p);
 
     void setAcceleration(float acceleration);
     void setSpeed(float speed);
@@ -92,6 +93,8 @@ public:
     bool isMoving();
     bool isMovingXY();
     bool isMovingZ();
+
+    bool isFinished();
 
     float getAcceleration();
     bool positionReached();

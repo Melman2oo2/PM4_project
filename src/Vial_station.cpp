@@ -50,7 +50,7 @@ static int colum = 1;
 //##########################################################################################
 //
 // return      uint16_t          Maske der Vials
-bool getMask_VialStation(){
+bool hasNextVial_VialStation(){
     if(Vial_0 + Vial_1 + Vial_2 + Vial_3 + Vial_4){
         printf("Vial ist umen: ");
         return 1;
