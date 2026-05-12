@@ -57,8 +57,10 @@ Pscara Point::getScara(float length) const {
 
     double alpha = std::acos(r / (2.0 * length));
 
-    p.theta_1 = phi - alpha;
-    p.theta_2 = 2.0 * alpha;
+    p.theta_1 = phi + alpha;
+
+    p.theta_2 = M_PI - 2.0 * alpha;
+
     p.z = z;
     p.impossible = false;
 
