@@ -70,7 +70,7 @@ void reset_desedimentation(){
     
     
     Servo_desedimentation.setPulseWidth(0.0f);
-     Servo_desedimentation.disable();
+    Servo_desedimentation.disable();
 
 }
 
@@ -91,7 +91,7 @@ Servo_desedimentation.setPulseWidth(Servo_input);
 if(!isTimerDone_desedimentation()){
     
     desedimentation_timer --;
-    printf("%d\n", desedimentation_timer);
+    //printf("%d\n", desedimentation_timer);
 
     if(forward){
         Servo_input = 0.0f;
@@ -106,7 +106,7 @@ if(!isTimerDone_desedimentation()){
         }
     }
    }else{
-    stop_desedimentation();
+    Servo_input = 0.0f;
    }
 
    
@@ -146,69 +146,8 @@ void start_timer(int time){
     return;
 }
 
-//##########################################################################################
-// beendung der Desedimentation
-//##########################################################################################
-//
-// beendet deîe Desedimentation so, dass das Vial oben ist
-void stop_desedimentation(){
-
-    Servo_input = 0.0f;
-     
-   
 
 
-   
-    return;
-}
-
-//##########################################################################################
-// enabled desedimentation
-//##########################################################################################
-//
-// enablet den Servo
-void enable_desedimentation(){
-    if (!Servo_desedimentation.isEnabled()){
-        Servo_desedimentation.enable();
-    }
-    return;
-}
-//##########################################################################################
-// disabled desedimentation
-//##########################################################################################
-//
-// disabled den Servo
-void disable_desedimentation(){
-    if (Servo_desedimentation.isEnabled()){
-        Servo_desedimentation.disable();
-    }
-    return;
-}
-// Rueckmeldungen
-
-//##########################################################################################
-// Statusabfrage, ob Servo aktiviert ist
-//##########################################################################################
-//
-// return       bool            true = Aktiviert
-bool isEnabled_desedimentation(){
-    if (Servo_desedimentation.isEnabled()){
-        return 1;
-    }
-    return 0;
-}
-
-//##########################################################################################
-// Statusabfrage, ob Servo deaktiviert ist
-//##########################################################################################
-//
-// return       bool            true = deaktiviert
-bool isDisabled_desedimentation(){
-    if (!Servo_desedimentation.isEnabled()){
-        return 1;
-    }
-    return 0;
-}
 
 //##########################################################################################
 // Statusabfrage, ob vial oben ist
@@ -222,7 +161,7 @@ bool isVialOben_desedimentation(){
         return 1;
     }else{
         
-        printf("nicht oben\n");
+        printf("Vial ist nicht oben\t");
         return 0;
     }
 

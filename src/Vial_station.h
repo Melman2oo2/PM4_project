@@ -13,19 +13,12 @@ extern DigitalIn Vial_4;
 #ifndef VIAL_STATION_H
 #define VIAL_STATION_H
 
-
-
-
     // Rueckmeldungen
 
     void init_VialStation();
 
     bool hasNextVial_VialStation();
 
-    Point vialPresent_VialStation();
-    
-    uint32_t nextVial_VialStation();
-
-   
+    Point vialPresent_VialStation();   
 
 #endif

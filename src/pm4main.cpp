@@ -65,7 +65,8 @@ enum class PM4State {
     Lid_from_holder,
     Lid_to_ENANTIOS,
     Ende,
-    ERROR
+    ERROR,
+    Zu_hell
 };PM4State state = PM4State::Start;
 PM4State error_from_state = PM4State::ERROR;
 int output_counter = 0;
@@ -80,7 +81,7 @@ void pm4init(void) {
     getScara();
     init_VialStation();
     init_desedimentation();
-    init_InputOutput();
+  
 
     return;
 }
@@ -97,6 +98,12 @@ void pm4main(void) {
     cycle_desedimentation();
     cycle_InputOuput();
 
+    if(temperature_overdose()){
+            error_from_state = PM4State::Zu_hell;
+            state = PM4State::ERROR;
+    }
+
+
     // Swicht der State Machine
     switch (state)
     {
@@ -104,7 +111,7 @@ void pm4main(void) {
         if(PRINTFACTIVE) printf("State: Start\t");
         // code for Start state
 
-        if(getScara().isFinished()) {
+        if(getScara().isFinished() && hasNextVial_VialStation()) {
             getScara().grab(vialPresent_VialStation());
             state = PM4State::Vial_from_Station;
         }
@@ -178,7 +185,7 @@ void pm4main(void) {
             } else {
                 getScara().place(outputs[output_counter]);
                 output_counter++;
-
+                state = PM4State::Vial_to_Output;
             }
         }
         break;
@@ -283,6 +290,9 @@ void pm4main(void) {
                 break;
             case PM4State::Lid_to_ENANTIOS:
                 printf("Licht zu hell\t");
+                break;
+            case PM4State::Zu_hell:
+                printf("zu Warm\t");
                 break;
             default:
                 printf("Unknown\t");

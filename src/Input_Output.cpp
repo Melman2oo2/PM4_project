@@ -33,7 +33,7 @@ static bool ACTIVE_SCAN;
 
 
 #define LIGHT_SOLL 0.5f // Gewolltes Licht in Lux
-#define LIGHT_TOL 0.1f // Erlaubte Abweichung in Lux
+
 
 #define TEMP_MAX 100.0f     // Max Temperatur in Grad Celsius        
 #define TEMP_MIN 0.0f    // Min Temperatur in Grad Celsius    
@@ -89,28 +89,28 @@ bool isScanFinished(){
 
     // Es gab nie einen Scan
     if(ever_has_been == 0 && ACTIVE_SCAN == 0){
-        printf("kein Scan erkannt");
+        printf("kein Scan erkannt\t");
         return 1;
     } 
     
     // Es gibt einen Scan zu beginn
     if(ever_has_been == 0 && ACTIVE_SCAN == 1){
         ever_has_been = 1;
-        printf("Scan erkannt");
+        printf("Scan erkannt\t");
         return 0;
     }
     
     // Scan läuft
     if(ever_has_been == 1 && ACTIVE_SCAN == 1){
         
-        printf("Scan im Gange");
+        printf("Scan im Gange\t");
         return 0;
     }
 
     // Scan beendet
     if(ever_has_been == 1 && ACTIVE_SCAN == 0){
         ever_has_been = 0;
-        printf("Scan beendet");
+        printf("Scan beendet\t");
         return 1;
     }
 
@@ -126,22 +126,14 @@ bool isScanFinished(){
 // Wiederholte Aufgufe (50Hz)
 void cycle_InputOuput(){
 
-    
-   
+    light_overdose();
 
      //Simulierten Timer für Scan
      static int SCAN_TIMER = 0;     
      if(ACTIVE_SCAN){
         SCAN_TIMER ++; 
+
         
-
-        if(light_overdose()){
-            printf("error, zu hell");
-        }
-
-        if(temperature_overdose()){
-            printf("error, zu warm/kalt");
-        }
         
     }else if (SCAN_TIMER == SIMULATED_SCAN_TIMER_TIME)
     {
@@ -186,7 +178,7 @@ bool light_overdose(){
         
     }else{
 
-        printf("Licht is nix gut\n");
+        
         return 1;
         
     } 
@@ -219,13 +211,14 @@ bool temperature_overdose(){
         cel_avg += cel_values[i];
     } 
     cel_avg /= 20;
-    printf("%f\n", input_value);
+    printf("Temperatur: %f\t", input_value);
     if(((TEMP_SOLL - TEMP_TOL) < cel_avg ) && (cel_avg < (TEMP_SOLL + TEMP_TOL))){
         
         return 0;
     }else{
+        
+        printf("Temperatur is nix gut\t");
         return 1;
-        printf("Temperatur is nix gut");
     } 
 
     
@@ -233,12 +226,3 @@ bool temperature_overdose(){
 
 
 
-//##########################################################################################
-// Initialisierung Input_Output
-//##########################################################################################
-//
-// Einmaliges aufrufen am Anfang
-void init_InputOutput(){
-
-    return;
-}

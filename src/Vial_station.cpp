@@ -52,11 +52,11 @@ static int colum = 1;
 // return      uint16_t          Maske der Vials
 bool hasNextVial_VialStation(){
     if(Vial_0 + Vial_1 + Vial_2 + Vial_3 + Vial_4){
-        printf("Vial ist umen: ");
+        
         return 1;
     }else{
         
-        printf("Vial nicht erkannt\n");
+        printf("Vial nicht erkannt\t");
         return 0;
     }     
 
@@ -69,75 +69,41 @@ bool hasNextVial_VialStation(){
 //
 // return       Point            Position des Vials, oder (0,0,0) wenn kein Vial
 Point vialPresent_VialStation(){
-    
-
-    switch (colum)
-    {
-    case 1:
         
-        if(Vial_0.read()){
-            printf("Vial_0 gefunden\n");
-            return Point(1.0, 1.0, 1.0);
-        }else{
-           nextVial_VialStation();            
-        }
-        break;
-    
-    case 2:
-        if(Vial_1.read()){
-            printf("Vial_1\n");
-            return Point(2.0, 2.0, 2.0);
-        }else{
-            nextVial_VialStation();
-        }
-        break;    
-    
-    case 3:
-        if(Vial_2.read()){
-            printf("Vial_2 gefunden\n");
-            return Point(3.0, 3.0, 3.0);
-        }else{
-            nextVial_VialStation();
-        }
-        break;   
-        
-    case 4:
-        if(Vial_3.read()){
-            printf("Vial_3 gefunden\n");
-            return Point(4.0, 4.0, 4.0);
-        }else{
-            nextVial_VialStation();
-        }
-        break;    
-
-    case 5:
-        if(Vial_4.read()){
-            printf("Vial_4 gefunden\n");
-            return Point(5.0, 5.0, 5.0);
-        }else{
-            nextVial_VialStation();
-        }
-        break;       
-    
+    if(Vial_0.read()){
+        printf("Vial_0 gefunden\t");
+        return Point(1.0, 1.0, 1.0);
     }
+        
+    
+    
+    if(Vial_1.read()){
+        printf("Vial_1 gefunden\t");
+        return Point(2.0, 2.0, 2.0);
+    }   
+    
+    
+    if(Vial_2.read()){
+        printf("Vial_2 gefunden\t");
+        return Point(3.0, 3.0, 3.0);
+    } 
+        
+    
+    if(Vial_3.read()){
+        printf("Vial_3 gefunden\t");
+        return Point(4.0, 4.0, 4.0);
+    }   
+
+    
+    if(Vial_4.read()){
+        printf("Vial_4 gefunden\t");
+        return Point(5.0, 5.0, 5.0);
+    }     
+    
+    
     return Point(0.0, 0.0, 0.0);
     
 } 
 
-//##########################################################################################
-// erhalte Nummer des nächsten Vials
-//##########################################################################################
-//
-// return       uint32_t        Nummer des nächsten vials   wenn false, ist letztes vial erreicht
-uint32_t nextVial_VialStation(){
-      
-    colum += 1;
 
-    if(colum > 5){
-        colum = 1;
-       
-    } 
-  
-    return (colum);
-}
 
