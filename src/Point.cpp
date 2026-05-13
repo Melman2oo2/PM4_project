@@ -45,7 +45,7 @@ Pscara Point::getScara(float length) const {
     double r = std::hypot(x, y);
     double phi = std::atan2(y, x);
 
-    if(r < 15.0) {
+    if(r < 70.0) {
         p.impossible = true;
         return p;
     }
@@ -57,7 +57,7 @@ Pscara Point::getScara(float length) const {
 
     double alpha = std::acos(r / (2.0 * length));
 
-    p.theta_1 = phi + alpha;
+    p.theta_1 = -(phi + alpha);
 
     p.theta_2 = M_PI - 2.0 * alpha;
 
