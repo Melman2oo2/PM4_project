@@ -17,7 +17,6 @@
 //##########################################################################################
 
 
-static int colum = 1;
 
 
 //##########################################################################################
@@ -30,11 +29,11 @@ static int colum = 1;
 
 
 
-    DigitalIn Vial_0(PA_9);
-    DigitalIn Vial_1(PC_7);
-    DigitalIn Vial_2(PB_6);
+    DigitalIn Vial_0(PB_0);
+    DigitalIn Vial_1(PA_4);
+    DigitalIn Vial_2(PC_5);
     DigitalIn Vial_3(PA_7);
-    DigitalIn Vial_4(PA_6);
+    DigitalIn Vial_4(PB_1);
 
     void init_VialStation(){
     Vial_0.mode(PullUp);

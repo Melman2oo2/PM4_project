@@ -32,7 +32,7 @@ static bool ACTIVE_SCAN;
 
 
 
-#define LIGHT_SOLL 0.5f // Gewolltes Licht in Lux
+#define LIGHT_SOLL 0.7f // Gewolltes Licht in Lux
 
 
 #define TEMP_MAX 100.0f     // Max Temperatur in Grad Celsius        

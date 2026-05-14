@@ -93,15 +93,17 @@ void pm4init(void) {
 void pm4main(void) {
     if(PRINTFACTIVE) printf("cycle begin\t");
 
+    // if (PRINTFACTIVE) printf("Licht: %d\t", light_overdose());
+
     // cycle der Module
     getScara().cycle();
     cycle_desedimentation();
     cycle_InputOuput();
 
-    if(temperature_overdose()){
-            error_from_state = PM4State::Zu_hell;
-            state = PM4State::ERROR;
-    }
+    // if(temperature_overdose()){
+    //         error_from_state = PM4State::Zu_hell;
+    //         state = PM4State::ERROR;
+    // }
 
 
     // Swicht der State Machine

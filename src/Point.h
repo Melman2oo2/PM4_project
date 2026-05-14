@@ -43,7 +43,7 @@ public:
     void setCylindrical(float r, float phi, float zValue = 0.0);
     void setCylindrical(Cylindrical cylindrical);
     void setScara(float theta_1, float theta_2, float length, float zValue = 0.0);
-    void setScara(Pscara pscara);
+    void setScara(Pscara pscara, float length);
 
     void setX(float xValue);
     void setY(float yValue);

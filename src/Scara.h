@@ -20,10 +20,10 @@ public:
 
 private:
     bool printActive;
-    bool doeshomeing = false;
+    bool doeshomeing = true;
 
     static constexpr float DELTA = 0.001f;
-    static constexpr float LENGTH = 20.0f;
+    static constexpr float LENGTH = 100.0f;
     static constexpr float GEWINDESTEIGUNG = -8.0f;
 
     static constexpr float OFFEN = 0.9f;

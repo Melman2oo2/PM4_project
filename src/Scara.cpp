@@ -70,8 +70,8 @@ void Scara::init() {
     // Motoren konfigurieren//
 
     enableMotionPlanner();
-    setAcceleration(0.5f);
-    setSpeed(0.5f);
+    setAcceleration(0.4f);
+    setSpeed(0.1f);
 
     zMotor.resetPosition();
     zMotor.setVelocity(0.0f);
@@ -94,7 +94,7 @@ void Scara::init() {
 void Scara::cycle() {
     if(printActive) printf("\nbeginn cycle:\t");
 
-    if(!isEnabled()) enable();
+    enableMotors = 1;
 
     openGripper();
 
@@ -116,7 +116,7 @@ void Scara::cycle() {
         case Status::InitialisierenZ:
             if(printActive) printf("init_z\t");
             doeshomeing = true;
-            zMotor.setVelocity(0.1f);
+            zMotor.setVelocity(-1.0f);
 
             if (zAnschlag){
                 zMotor.setVelocity(0.0f);
@@ -129,7 +129,8 @@ void Scara::cycle() {
 
         case Status::InitialisierenSecond:
             if(printActive) printf("init_second\t");
-
+            servoSecond.enable();
+            servoGripper.enable();
             servoSecond.setPulseWidth(0.0f);
             if (isCloseTo(servoSecond.getCurrentPulseWidth(), 0.0f, DELTA)){
                 status = Status::InitialisierenFirst;
@@ -145,7 +146,7 @@ void Scara::cycle() {
                 firstMotor.resetPosition();
                 firstMotor.setRotation(0.0f);
 
-                target.setCartesian(0.0f, 15.0f, -1.0f);
+                target.setCartesian(0.0f, 150.0f, -2.0f);
                 status = Status::InitialisierenWeg;
             }
             break;
@@ -166,7 +167,7 @@ void Scara::cycle() {
             if(printActive) printf("vial Greiffen\t");
 
             // Greiffer nach oben fahren und öffnen
-            target.setZ(-1.0f);
+            target.setZ(-2.0f);
             openGripper();
 
             updateTarget();
@@ -182,7 +183,7 @@ void Scara::cycle() {
 
             // Greiffer über das Vial fahren
             target = grabPlacePoint;
-            target.setZ(-1.0f);
+            target.setZ(-2.0f);
 
             updateTarget();
             updateCurrent();
@@ -212,7 +213,7 @@ void Scara::cycle() {
             if(printActive) printf("vial positionieren\t");
 
             // Greiffer nach oben und schliessen
-            target.setZ(-1.0f);
+            target.setZ(-2.0f);
             closeGripper();
             
             updateTarget();
@@ -228,7 +229,7 @@ void Scara::cycle() {
 
             // Greiffer über Ziel fahren
             target = grabPlacePoint;
-            target.setZ(-1.0f);
+            target.setZ(-2.0f);
 
             updateTarget();
             updateCurrent();
@@ -302,7 +303,7 @@ bool Scara::updateTarget() {
         return false;
     }
 
-    firstMotor.setRotation(pscara.theta_1/(2.0f*M_PI));
+    firstMotor.setRotation(-pscara.theta_1/(2.0f*M_PI));
     servoSecond.setPulseWidth(pscara.theta_2/M_PI);
 
     zMotor.setRotation(pscara.z / GEWINDESTEIGUNG);
@@ -602,12 +603,12 @@ float Scara::getAcceleration() {
 bool Scara::positionReached() {
     if (doStop) return true;
 
-    Cartesian targetCartesian = target.getCartesian();
-    Cartesian currentCartesian = current.getCartesian();
+    Cylindrical targetCylindrical = target.getCylindrical();
+    Cylindrical currentCylindrical = current.getCylindrical();
 
-    if (!isCloseTo(targetCartesian.x, currentCartesian.x, DELTA)) return false;
-    if (!isCloseTo(targetCartesian.y, currentCartesian.y, DELTA)) return false;
-    if (!isCloseTo(targetCartesian.z, currentCartesian.z, DELTA)) return false;
+    if (!isCloseTo(targetCylindrical.r, currentCylindrical.r, DELTA*10.0f)) return false;
+    if (!isCloseTo(targetCylindrical.phi, currentCylindrical.phi, DELTA*10.0f)) return false;
+    if (!isCloseTo(targetCylindrical.z, currentCylindrical.z, DELTA*10.0f)) return false;
 
     return true;
 }
@@ -618,7 +619,7 @@ bool Scara::positionReached() {
 // return       void        aktuelle Position update
 void Scara::updateCurrent() {
     current.setScara(
-        firstMotor.getRotation()*2.0f*M_PI,
+        -firstMotor.getRotation()*2.0f*M_PI,
         servoSecond.getCurrentPulseWidth()*M_PI,
         LENGTH,
         zMotor.getRotation() * GEWINDESTEIGUNG);
@@ -633,13 +634,34 @@ void Scara::printstate(){
 
     if(!printActive) return;
 
-    printf("PWM: %f\t", servoGripper.getCurrentPulseWidth());
-    printf("state offen: %1d\tstate geschlossen: %1d\n", isGripperOpen(), isGripperClose());
+    // Pscara PcurScara = current.getScara(LENGTH);
+    // Pscara PtargetScara = target.getScara(LENGTH);
+    // Cylindrical PcurCylindrical = current.getCylindrical();
+    // Cylindrical PtargetCylindrical = target.getCylindrical();
+    // Cartesian PcurCartesian = current.getCartesian();
+    // Cartesian PtargetCartesian = target.getCartesian();
+    // printf("Cartasian: %3.3f, %3.3f, %3.3f\t\t%3.3f, %3.3f, %3.3f\n", PcurCartesian.x, PcurCartesian.y, PcurCartesian.z, PtargetCartesian.x, PtargetCartesian.y, PtargetCartesian.z);
+    // printf("Cylindrical: %3.3f, %3.3f, %3.3f\t\t%3.3f, %3.3f, %3.3f\n", PcurCylindrical.r, PcurCylindrical.phi, PcurCylindrical.z, PtargetCylindrical.r, PtargetCylindrical.phi, PtargetCylindrical.z);
+    // printf("Scara: %3.3f, %3.3f, %3.3f\t\t%3.3f, %3.3f, %3.3f\t\timpossible: %1d\n", PcurScara.theta_1, PcurScara.theta_2, PcurScara.z, PtargetScara.theta_1, PtargetScara.theta_2, PtargetScara.z, PtargetScara.impossible);
+
+    // printf("theta2 target: %f\n", PtargetScara.theta_2);
+    // printf("servo pwm: %f\n", PtargetScara.theta_2/M_PI);
+    // printf("servo current: %f\n", servoSecond.getCurrentPulseWidth());
+
+    Point p(0, 150, 0);
+    Pscara s = p.getScara(LENGTH);
+    Point p2;
+    p2.setScara(s, LENGTH);
+    printf("\n%f %f\n", p.getCartesian().x, p2.getCartesian().x);
+    printf("%f %f\n", p.getCartesian().y, p2.getCartesian().y);
+
+    // printf("PWM: %f\t", servoGripper.getCurrentPulseWidth());
+    // printf("state offen: %1d\tstate geschlossen: %1d\n", isGripperOpen(), isGripperClose());
 
     // printf("Z Anschlag: %1d\tFirst Anschlag: %1d\n", zAnschlag, firstAnschlag);
 
-    // printf("current rot: %f\t", zMotor.getRotation());
-    // printf("target rot: %f\t", zMotor.getRotationTarget());
+    printf("current rot: %f\t", firstMotor.getRotation());
+    printf("target rot: %f\t", firstMotor.getRotationTarget());
     // printf("PWM: %f\n", zMotor.getPWM());
     // updateCurrent();
     // Pscara Pcur = current.getScara(LENGTH);
@@ -654,7 +676,10 @@ void Scara::printstate(){
     //        zMotor.getEncoderCount());
 
     // printf("ENC M1: %ld\tM2: %ld\n", firstMotor.getEncoderCount(), zMotor.getEncoderCount());
-    // printf("pos.: M1  cur:%8f\ttarget:%8f\tM2  cur:%8f\ttarget:%8f\t\timpossible:%1d\n", Pcur.theta_1, Ptarget.theta_1, Pcur.z, Ptarget.z, Ptarget.impossible);
+
+    // Pscara Pcur = current.getScara(LENGTH);
+    // Pscara Ptarget = target.getScara(LENGTH);
+    // printf("pos.: first  cur:%8f\ttarget:%8f\tsecond  cur:%8f\ttarget:%8f\tZ  cur:%8f\ttarget:%8f\t\timpossible:%1d,   close%1d\n", Pcur.theta_1, Ptarget.theta_1, Pcur.theta_2, Ptarget.theta_2, Pcur.z, Ptarget.z, Ptarget.impossible, positionReached());
     // printf("rot.   M1: %8f\tM2: %8f\t\t velocity     M1: %5f\tM2: %5f\n", firstMotor.getRotation(), zMotor.getRotation(), firstMotor.getMaxVelocity(), zMotor.getMaxVelocity());
     return;
 }

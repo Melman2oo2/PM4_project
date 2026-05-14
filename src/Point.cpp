@@ -43,29 +43,76 @@ Pscara Point::getScara(float length) const {
     Pscara p;
 
     double r = std::hypot(x, y);
+
+    if(r > 1.9 * length || r < 70.0) {
+        p.impossible = true;
+        return p;
+    }
+
     double phi = std::atan2(y, x);
 
-    if(r < 70.0) {
-        p.impossible = true;
-        return p;
+    double cos_theta_2 =
+        (r * r - 2.0 * length * length) /
+        (2.0 * length * length);
+
+    if(cos_theta_2 > 1.0) {
+        cos_theta_2 = 1.0;
     }
 
-    if(r * 0.95 > 2.0 * length) {
-        p.impossible = true;
-        return p;
+    if(cos_theta_2 < -1.0) {
+        cos_theta_2 = -1.0;
     }
 
-    double alpha = std::acos(r / (2.0 * length));
+    // andere IK Lösung
+    double theta_2 = -std::acos(cos_theta_2);
 
-    p.theta_1 = -(phi + alpha);
+    double beta =
+        std::atan2(
+            length * std::sin(theta_2),
+            length + length * std::cos(theta_2)
+        );
 
-    p.theta_2 = M_PI - 2.0 * alpha;
+    double theta_1 = phi - beta;
+
+    // Definition beibehalten:
+    // 0 = gestreckt
+    // PI = eingeklappt
+    p.theta_1 = theta_1;
+    p.theta_2 = -theta_2;
 
     p.z = z;
     p.impossible = false;
 
     return p;
 }
+
+// Pscara Point::getScara(float length) const {
+//     Pscara p;
+
+//     double r = std::hypot(x, y);
+//     double phi = std::atan2(y, x);
+
+//     if(r < 70.0) {
+//         p.impossible = true;
+//         return p;
+//     }
+
+//     if(r * 0.95 > 2.0 * length) {
+//         p.impossible = true;
+//         return p;
+//     }
+
+//     double alpha = std::acos(r / (2.0 * length));
+
+//     p.theta_1 = -(phi + alpha);
+
+//     p.theta_2 = M_PI - 2.0 * alpha;
+
+//     p.z = z;
+//     p.impossible = false;
+
+//     return p;
+// }
 
 void Point::setCartesian(float xValue, float yValue, float zValue) {
     x = xValue;
@@ -91,32 +138,52 @@ void Point::setCylindrical(Cylindrical cylindrical) {
     z = cylindrical.z;
 }
 
-void Point::setScara(float theta_1, float theta_2, float length, float zValue) {
-    double x1 = length * std::cos(theta_1);
-    double y1 = length * std::sin(theta_1);
+// void Point::setScara(float theta_1, float theta_2, float length, float zValue) {
 
-    double x2 = length * std::cos(theta_1 + theta_2);
-    double y2 = length * std::sin(theta_1 + theta_2);
+//     double alpha = (M_PI - theta_2) / 2.0;
+
+//     double phi = -theta_1 - alpha;
+
+//     double r = 2.0 * length * std::cos(alpha);
+
+//     x = r * std::cos(phi);
+//     y = r * std::sin(phi);
+//     z = zValue;
+// }
+
+void Point::setScara(float theta_1,
+                     float theta_2,
+                     float length,
+                     float zValue) {
+
+    double x1 =
+        length * std::cos(theta_1);
+
+    double y1 =
+        length * std::sin(theta_1);
+
+    double x2 =
+        length * std::cos(theta_1 - theta_2);
+
+    double y2 =
+        length * std::sin(theta_1 - theta_2);
 
     x = x1 + x2;
     y = y1 + y2;
     z = zValue;
 }
 
-void Point::setScara(Pscara pscara) {
+void Point::setScara(Pscara pscara, float length) {
     if(pscara.impossible) {
         return;
     }
-    
-    double x1 = pscara.theta_2 * std::cos(pscara.theta_1);
-    double y1 = pscara.theta_2 * std::sin(pscara.theta_1);
 
-    double x2 = pscara.theta_2 * std::cos(pscara.theta_1 + pscara.theta_2);
-    double y2 = pscara.theta_2 * std::sin(pscara.theta_1 + pscara.theta_2);
-
-    x = x1 + x2;
-    y = y1 + y2;
-    z = pscara.z;
+    setScara(
+        pscara.theta_1,
+        pscara.theta_2,
+        length,
+        pscara.z
+    );
 }
 
 void Point::setX(float xValue) {

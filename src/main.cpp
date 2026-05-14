@@ -61,7 +61,7 @@ int main()
     while (true) {
         main_task_timer.reset();
 
-        //getScara().printstate();
+        getScara().printstate();
 
         
         if (do_execute_main_task) {
