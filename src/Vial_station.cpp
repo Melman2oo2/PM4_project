@@ -71,32 +71,52 @@ Point vialPresent_VialStation(){
         
     if(Vial_0.read()){
         printf("Vial_0 gefunden\t");
-        return Point(1.0, 1.0, 1.0);
+        // return Point(114.0f, 63.0f, -57.8f);
+        return Point(80.0f, 62.0f, -57.8f);
+        // return Point(107.0f, 93.0f, -57.8f);
+        // return Point(75.0f, 98.0f, -57.8f);
+        // return Point(65.0f, 127.0f, -57.8f);
     }
         
     
     
     if(Vial_1.read()){
         printf("Vial_1 gefunden\t");
-        return Point(2.0, 2.0, 2.0);
+        // return Point(114.0f, 63.0f, -57.8f);
+        // return Point(80.0f, 62.0f, -57.8f);
+        // return Point(107.0f, 93.0f, -57.8f);
+        return Point(75.0f, 98.0f, -57.8f);
+        // return Point(65.0f, 127.0f, -57.8f);
     }   
     
     
     if(Vial_2.read()){
         printf("Vial_2 gefunden\t");
-        return Point(3.0, 3.0, 3.0);
+        // return Point(114.0f, 63.0f, -57.8f);
+        // return Point(80.0f, 62.0f, -57.8f);
+        // return Point(107.0f, 93.0f, -57.8f);
+        // return Point(75.0f, 98.0f, -57.8f);
+        return Point(65.0f, 127.0f, -57.8f);
     } 
         
     
     if(Vial_3.read()){
         printf("Vial_3 gefunden\t");
-        return Point(4.0, 4.0, 4.0);
+        // return Point(114.0f, 63.0f, -57.8f);
+        // return Point(80.0f, 62.0f, -57.8f);
+        return Point(107.0f, 93.0f, -57.8f);
+        // return Point(75.0f, 98.0f, -57.8f);
+        // return Point(65.0f, 127.0f, -57.8f);
     }   
 
     
     if(Vial_4.read()){
         printf("Vial_4 gefunden\t");
-        return Point(5.0, 5.0, 5.0);
+        return Point(114.0f, 63.0f, -57.8f);
+        // return Point(80.0f, 62.0f, -57.8f);
+        // return Point(107.0f, 93.0f, -57.8f);
+        // return Point(75.0f, 98.0f, -57.8f);
+        // return Point(65.0f, 127.0f, -57.8f);
     }     
     
     

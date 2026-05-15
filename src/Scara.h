@@ -24,9 +24,9 @@ private:
 
     static constexpr float DELTA = 0.001f;
     static constexpr float LENGTH = 100.0f;
-    static constexpr float GEWINDESTEIGUNG = -8.0f;
+    static constexpr float GEWINDESTEIGUNG = -4.0f;
 
-    static constexpr float OFFEN = 0.9f;
+    static constexpr float OFFEN = 0.4f;
     static constexpr float GESCHLOSSEN = 0.0f;
 
     static constexpr float maximaleSpannung = 12.0f;
@@ -45,14 +45,17 @@ private:
         InitialisierenFirst,
         InitialisierenWeg,
         VialGreifen0,
+        VialGreifenABL,
         VialGreifenXY,
         VialGreifenZ,
         VialPositionieren0,
+        VialPositionierenABL,
         VialPositionierenXY,
         VialPositionierenZ,
         VialPositionierenWeg,
         Idle,
-        Reset
+        Reset,
+        test
     };
     Status status = Status::InitialisierenZ;
 
@@ -103,7 +106,7 @@ public:
 
     void printstate();
 
-private:
+// private:
 
     // Handler für Anschläge
     void Zanschlag_Handler_rise();

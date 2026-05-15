@@ -132,15 +132,17 @@ void cycle_InputOuput(){
      static int SCAN_TIMER = 0;     
      if(ACTIVE_SCAN){
         SCAN_TIMER ++; 
-
+    }
         
         
-    }else if (SCAN_TIMER == SIMULATED_SCAN_TIMER_TIME)
+    if (SCAN_TIMER >= SIMULATED_SCAN_TIMER_TIME)
     {
         ACTIVE_SCAN = 0;
         ScanLed = 0;
         SCAN_TIMER = 0;
     }
+
+    printf("scantimer: %d\t",SCAN_TIMER);
     
     return;
 }

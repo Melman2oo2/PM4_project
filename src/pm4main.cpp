@@ -36,19 +36,21 @@ bool first_Vial = true;
 bool kurzVorEnde = false;
 
 // Globale Punkte
-Point p_Desedimentation(10.0f, 10.0f, 0.0f);
-Point p_idle(0.0f, 0.0f, 0.0f);
-Point p_ENANTIOS(20.0f, 20.0f, 0.0f);
-Point p_LidClose(30.0f, 30.0f, 0.0f);
-Point p_LidOpen(40.0f, 40.0f, 0.0f);
+Point p_Desedimentation(-8.0f,128.8f, -43.5f);
+Point p_idle(0.0f, 150.0f, -4.0f);
+Point p_ENANTIOS(-3.0f,92.0f, -131.0f);
+Point p_LidClose(-6.0f,93.0f, -77.3f);
+Point p_LidOpen(177.0f,-17.0f, -73.0f);
+
+Point p_test(-100.0f, 129.0f, -57.5f);
 
 Point outputs[] = {
-    Point(0.0f, 0.0f, 0.0f),
-    Point(0.0f, 0.0f, 0.0f),
-    Point(0.0f, 0.0f, 0.0f),
-    Point(0.0f, 0.0f, 0.0f),
-    Point(0.0f, 0.0f, 0.0f),
-    Point(0.0f, 0.0f, 0.0f)
+    Point(-86.0f, 73.0f, -57.5f),
+    Point(-78.0f, 107.0f, -57.5f),
+    Point(-69.5f, 136.0f, -57.5f),
+    Point(-107.5f, 73.5f, -57.5f),
+    Point(-102.8f, 103.0f, -57.5f),
+    Point(-100.0f, 129.0f, -57.5f)
 };
 
 
@@ -113,9 +115,12 @@ void pm4main(void) {
         if(PRINTFACTIVE) printf("State: Start\t");
         // code for Start state
 
+
         if(getScara().isFinished() && hasNextVial_VialStation()) {
             getScara().grab(vialPresent_VialStation());
             state = PM4State::Vial_from_Station;
+            // getScara().grab(p_test);
+            // state = PM4State::Ende;
         }
         break;
 
@@ -136,6 +141,8 @@ void pm4main(void) {
         if(getScara().isFinished()) {
             start_desedimentation();
             // wenn nicht erstes vial, warten bis scan fertig, sonst direkt weiter
+            printf("first vial: %d\t", first_Vial);
+            printf("scan finished: %d\t", isScanFinished());
             if(!first_Vial && !isScanFinished()) break;
             getScara().grab(p_LidClose);
             state = PM4State::Lid_from_ENANTIOS;
@@ -257,18 +264,16 @@ void pm4main(void) {
                     break;
                 }
                 
-                startScan();
-
-                if(kurzVorEnde || !hasNextVial_VialStation()) {
+                if(isScanFinished()){
+                    if(!hasNextVial_VialStation()) {
                     kurzVorEnde = true;
-                    if(isScanFinished()) {
-                        getScara().grab(p_LidClose);
-                        state = PM4State::Lid_from_ENANTIOS;
-                    }
+                    getScara().grab(p_LidClose);
+                    state = PM4State::Lid_from_ENANTIOS;
                 }else{
-                getScara().grab(vialPresent_VialStation());
-                state = PM4State::Vial_from_Station;
+                    getScara().grab(vialPresent_VialStation());
+                    state = PM4State::Vial_from_Station;
                 }
+                }else startScan();
             }
             
         }
@@ -280,7 +285,7 @@ void pm4main(void) {
 
         break;
 
-    case PM4State::ERROR:
+    case PM4State::ERROR: //ERROR unc default
     default:
         if(PRINTFACTIVE) printf("State: ERROR\t");
         getScara().stop();
